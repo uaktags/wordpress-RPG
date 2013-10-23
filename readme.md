@@ -3,7 +3,7 @@ Contributors: Tim G
 Tags:
 Requires at least: 3.5
 Tested up to: 3.5
-Stable tag: 0.1
+Stable tag: 0.0.2
 
 
 
@@ -18,5 +18,9 @@ Build your own game, on your very popular and easy to use Wordpress Site.
 
 == Changelog ==
 
-= 0.1 =
+= 0.0.2 =
+- Updated the Battle system
+- Battle system results work
+
+= 0.0.1 =
 - Initial Revision

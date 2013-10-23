@@ -2,7 +2,7 @@
 /*
    Plugin Name: WP RPG
    Plugin URI: http://wordpress.org/extend/plugins/wp-rpg/
-   Version: 0.0.1
+   Version: 0.0.2
    Author: <a href="http://tagsolutions.tk">Tim G.</a>
    Description: RPG Elements added to WP
    Text Domain: wp-rpg
@@ -115,49 +115,113 @@
                 global $wpdb;
                 $attack = array();
                 $defend = array();
-                $attack['sql'] = "SELECT xp, hp, level, strength, defense FROM ".$wpdb->base_prefix."rpg_usermeta WHERE uid = %d";
+                $attack['sql'] = "SELECT xp, hp, level, strength, defense FROM ".$wpdb->base_prefix."rpg_usermeta WHERE pid = %d";
                 if ( $attack['result'] = $wpdb->get_row($wpdb->prepare($attack['sql'], $attacker)) != null){
                                 $attack['result'] = $wpdb->get_row($wpdb->prepare($attack['sql'], $attacker));
                 }
-                $defend['sql'] = "SELECT xp, hp, level, strength, defense FROM ".$wpdb->base_prefix."rpg_usermeta WHERE uid = %d";
+                $defend['sql'] = "SELECT xp, hp, level, strength, defense FROM ".$wpdb->base_prefix."rpg_usermeta WHERE pid = %d";
                 
                 if ( $defend['result'] = $wpdb->get_row($wpdb->prepare($defend['sql'], $defender)) != null){
                                 $defend['result'] = $wpdb->get_row($wpdb->prepare($defend['sql'], $defender));
-                }                
-                $attack['score'] = calculate_scores($attack['result']->xp, $attack['result']->hp, $attack['result']->level, $attacker);
-                $defend['score'] = calculate_scores($defend['result']->xp, $defend['result']->hp, $defend['result']->level, $defender);
+                }
+				$attack['level'] = player_level($attack['result']->xp)['0']->title;
+				$defend['level'] = player_level($defend['result']->xp)['0']->title;
+                $attack['score'] = calculate_scores($attack['result']->xp, $attack['result']->hp, $attack['level'], $attacker);
+                $defend['score'] = calculate_scores($defend['result']->xp, $defend['result']->hp, $defend['level'], $defender);
+				if( $attack['result']->hp == 0 )
+				{
+					return 'You can not attack with 0 HP!<br /><a href="#" onclick="location.reload(true); return false;">Reload Members List</a>';
+				}elseif( $defend['result']->hp == 0 )
+				{
+					$defend['score'] = $defend['score'] * '.75'; //Attacker bonus! 
+				}
                 //echo $attack['score'] . " : " . $defend['score']; die;
                 if ( $attack['score'] >= $defend['score'] ){ //attacker wins
-                        $defend['min'] = max(0, ($defend['result']->strength + $defend['result']->defense) - 3);
-                        $defend['max'] = $defend['result']->strength + $defend['result']->defense + 2;
-                        $defend['damage'] = rand($defend['min'], $defend['max']);
-                        $attack['min'] = max(0, ($attack['result']->strength + $attack['result']->defense) - 3);
-                        $attack['max'] = $attack['result']->strength + $attack['result']->defense + 2;
-                        $attack['damage'] = rand($attack['min'], $attack['max']);
-                        $attack['xp'] = $attack['result']->level * rand(4, 6);
-                        return '<p>'. get_user_by_id($attacker)->user_login . ' Won!</p>';
-                        update_results_battle($attack['xp'], $attacker, $attack['damage'], $defender, $defend['damage'], $attacker, $defender);
+						$loser['pid'] = $defender;
+						$loser['score'] = $defend['score'];
+						$loser['level'] = $defend['level'];
+                        $loser['min'] = max(0, ($defend['result']->strength + $defend['result']->defense) - 3);
+                        $loser['max'] = $defend['result']->strength + $defend['result']->defense + 2;
+                        $loser['damage'] = rand($loser['min'], $loser['max']);
+						$loser['hp'] = $defend['result']->hp - $loser['damage'];
+						if($loser['hp'] <= 0)
+						{
+							$loser['hp'] = 0;
+						}
+						$winner['pid'] = $attacker;
+                        $winner['score'] = $attack['score'];
+						$winner['level'] = $attack['level'];
+						$winner['min'] = max(0, ($attack['result']->strength + $attack['result']->defense) - 3);
+                        $winner['max'] = $attack['result']->strength + $attack['result']->defense + 2;
+                        $winner['damage'] = rand($winner['min'], $winner['max']);
+						$winner['hp'] = $attack['result']->hp - $winner['damage'];
+						if($winner['hp'] <= 0)
+						{
+							$winner['hp'] = 0;
+						}
+                        $winner['xp'] = $attack['result']->xp * rand(1, 4) + $attack['result']->xp;
+                        update_results_battle($winner, $loser, $attacker, $defender);
+						return '<p>'. get_user_by_id($attacker)->user_login . ' Won!</p>'.print_results_battle($winner, $loser, $attacker, $defender);
                 } else { //attacker loses
-                        $attack['min'] = max(0, ($attack['result']->strength + $attack['result']->defense) - 3);
-                        $attack['max'] = $attack['result']->strength + $attack['result']->defense + 2;
-                        $attack['damage'] = rand($attack['min'], $attack['max']);
-                        $defend['min'] = max(0, ($defend['result']->strength + $defend['result']->defense) - 3);
-                        $defend['max'] = $defend['result']->strength + $defend['result']->defense + 2;
-                        $defend['damage'] = rand($defend['min'], $defend['max']);
-                        $defend['xp'] = $defend['result']->level * rand( 4, 7);
-                        return '<p>'. get_user_by_id($defender)->user_login . ' Won!</p>';
-                        update_results_battle($defend['xp'], $defender, $defend['damage'], $attacker, $attacker['damage'], $attacker, $defender);
+						$loser['pid'] = $attacker;
+						$loser['score'] = $attack['score'];
+						$loser['level'] = $attack['level'];
+                        $loser['min'] = max(0, ($attack['result']->strength + $attack['result']->defense) - 3);
+                        $loser['max'] = $attack['result']->strength + $attack['result']->defense + 2;
+                        $loser['damage'] = rand($loser['min'], $loser['max']);
+						$loser['hp'] = $attack['result']->hp - $loser['damage'];
+						if($loser['hp'] <= 0)
+						{
+							$loser['hp'] = 0;
+						}
+						$winner['pid'] = $defender;
+						$winner['score'] = $defend['score'];
+						$winner['level'] = $defend['level'];
+                        $winner['min'] = max(0, ($defend['result']->strength + $defend['result']->defense) - 3);
+                        $winner['max'] = $defend['result']->strength + $defend['result']->defense + 2;
+                        $winner['damage'] = rand($winner['min'], $winner['max']);
+						$winner['hp'] = $defend['result']->hp - $winner['damage'];
+                        if($winner['hp'] <= 0)
+						{
+							$winner['hp'] = 0;
+						}
+						$winner['xp'] = $defend['result']->xp * rand( 1, 5) + $defend['result']->xp;
+                        update_results_battle( $winner, $loser, $attacker, $defender);
+                        return '<p>'. get_user_by_id($defender)->user_login . ' Won!</p>'. print_results_battle($winner, $loser, $attacker, $defender);
                 }
         }
         
-        function update_results_battle($winxp, $winid, $windam, $loseid, $losedam, $attacker, $defender){
+		function print_results_battle( $winner, $loser, $attacker, $defender)
+		{
+			$a_name = get_user_by_id($attacker)->user_login;
+			$d_name = get_user_by_id($defender)->user_login;
+			$result = '<strong><h2>Battle Results</h2></strong><p>';
+			$result .= $a_name . ' attacked ' . $d_name . ' and ' . ($winner['pid'] == $attacker ? 'won.' : 'lost.') . '<br />';
+			$result .= $a_name . ' attacked with a score of '. ($winner['pid'] == $attacker ? $winner['score'] : $loser['score']). '<br />';
+			$result .= $d_name . ' defended against the attack with a score of '. ($winner['pid'] == $defender ? $winner['score'] : $loser['score']). '<br />';
+			$result .= $a_name . ' suffered ' . ($winner['pid'] == $attacker ? $winner['damage'] : $loser['damage']). ' damage. <br />';
+			$result .= $d_name . ' suffered ' . ($winner['pid'] == $defender ? $winner['damage'] : $loser['damage']). ' damage. <br />';
+			if( $winner['level'] < player_level($winner['xp'])['0']->title )
+			{
+				if( $winner['pid'] == $attacker )
+				{
+					$result .= 'Congrats! You earned a new level! <br /> Now you\'re level ' . player_level($winner['xp'])['0']->title;
+				}else{
+					$result .= 'Congrats, attacking '. $d_name .' and losing, earned them a new level! <br /> They are now level ' . player_level($winner['xp'])['0']->title;
+				}
+			}
+			$result .= '</p><br /><a href="#" onclick="location.reload(true); return false;">Reload Members List</a>';
+			return $result;
+		}
+		
+        function update_results_battle( $winner, $loser, $attacker, $defender){
                 global $wpdb;
                 $wpdb->insert( 
-                        $wpdb->base_prefix."_attack_log", 
+                        $wpdb->prefix."rpg_attack_log", 
                         array( 
                                 'attacker' => $attacker,
                                 'defender' => $defender,
-                                'winner' => $winid                                
+                                'winner' => $winner['pid']                                
                         ), 
                         array(  
                                 '%d',
@@ -165,10 +229,10 @@
                                 '%d'
                         ) 
                 );
-                $sql = "UPDATE ".$wpdb->prefix."rpg_usermeta SET xp=xp+%d, hp=hp-%d WHERE uid = %d";
-                $wpdb->query( $wpdb->prepare( $sql, $winxp, $windam, $winid));
-                $sql = "UPDATE ".$wpdb->prefix."rpg_usermeta SET hp=hp-%d WHERE uid = %d";
-                $wpdb->query( $wpdb->prepare( $sql, $losedam, $loseid));
+                $sql = "UPDATE ".$wpdb->prefix."rpg_usermeta SET xp=%d, hp=%d WHERE pid = %d";
+                $wpdb->query( $wpdb->prepare( $sql, $winner['xp'], $winner['hp'], $winner['pid']));
+                $sql = "UPDATE ".$wpdb->prefix."rpg_usermeta SET hp=%d WHERE pid = %d";
+                $wpdb->query( $wpdb->prepare( $sql, $loser['hp'], $loser['pid']));
         }
         
         function calculate_scores($xp, $hp, $level, $attacker){
@@ -190,7 +254,11 @@
 				$result .= '<tr><th>MemberName</th><th>HP</th><th>Level</th><th>Actions</th></tr>';
 				foreach($res as $u)
 				{
-					$result .= '<tr><td>'.$u->user_nicename.'</td><td>'.$u->hp.'</td><td>'.player_level($u->xp)['0']->title.'</td><td>'.($u->ID != $current_user->ID?'<button id="attack" name="'.$u->ID.'">Attack</button>':'').'</td></tr>';
+					$result .= '<tr><td>'.$u->user_nicename.'</td><td>'.$u->hp.'</td><td>'.player_level($u->xp)['0']->title.'</td><td>';
+						if(is_user_logged_in()){
+							$result .= ($u->ID != $current_user->ID?'<button id="attack" name="'.$u->ID.'">Attack</button>':'');
+						}
+						$result .= '</td></tr>';
 				}
 				$result .= '</table></div>';
 				return $result;
@@ -199,7 +267,7 @@
 		function player_level($level)
 		{
 			global $wpdb;
-			$sql = "SELECT title FROM ".$wpdb->base_prefix."rpg_levels WHERE min <= ". $level;
+			$sql = "SELECT title FROM ".$wpdb->base_prefix."rpg_levels l WHERE l.group='player_levels' AND l.min <= ". $level;
 			$result = $wpdb->get_results($sql);
 			return $result;
 		}
@@ -216,6 +284,7 @@
 								method: 'post',
 								url: 'wp-admin/admin-ajax.php',
 								data: {
+									'action': 'attack',
 									'attacker': you,
 									'defender': them,
 									'ajax': true,
@@ -241,3 +310,9 @@
 		////////////////////////
 		
 		add_shortcode('list_players', 'list_players_func');
+		function attack_callback()
+		{
+			echo WpRPG_Attack($_POST['attacker'], $_POST['defender']);
+			die();
+		}
+		add_action('wp_ajax_attack', 'attack_callback');
