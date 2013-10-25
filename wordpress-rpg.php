@@ -2,7 +2,7 @@
 /*
    Plugin Name: WP RPG
    Plugin URI: http://wordpress.org/extend/plugins/wp-rpg/
-   Version: 0.0.2
+   Version: 0.0.3
    Author: <a href="http://tagsolutions.tk">Tim G.</a>
    Description: RPG Elements added to WP
    Text Domain: wp-rpg
@@ -43,7 +43,10 @@
         function wp_rpg_options() {
                 global $wpdb, $current_user; 
 				echo 'Test';
-                //include_once('wp-rpg-admin.php');
+				echo '<br />Last Cron: ' . date('Y-m-d:H:i:s', get_option('WPRPG_last_cron'));
+				echo '<br />Number of 30mins since then: '. time_elapsed(get_option('WPRPG_last_cron') );
+                echo '<br />Next Cron: ' . date('Y-m-d:H:i:s', get_option('WPRPG_next_cron'));
+				//include_once('wp-rpg-admin.php');
         }
 
         /*
@@ -53,8 +56,12 @@
         {
                 add_menu_page( 'Wordpress RPG Options', 'WP-RPG', 'manage_options', 'wp_rpg_menu', 'wp_rpg_options' );
         }
-
-        
+		
+		function time_elapsed($secs)
+		{
+			return round( (time() - $secs) / (60*30));
+			
+		}
         //////////////////////////////////
         // End Options Page
         //////////////////////////////////
@@ -68,8 +75,32 @@
         
         add_action('user_register', 'WpRPG_user_register');
         add_action('admin_menu', 'add_rpg_to_admin_menu');
+        add_action('wp_footer', 'check_cron');
         
-        
+		function check_cron()
+		{
+			$last = get_option('WPRPG_last_cron');
+			if(time_elapsed($last))
+			{
+				$i = 1;
+				$xs = time_elapsed($last);
+				while($i++ < $xs)
+				{
+					replenish_hp();
+				}
+				replenish_hp();
+				$next_t = (time() - (time() % 1800)) + 1800;
+				update_option('WPRPG_last_cron', time());
+				update_option('WPRPG_next_cron', $next_t);
+			}
+		}
+		function replenish_hp()
+		{
+			global $wpdb;
+			$wpdb->show_errors();
+			$sql = "UPDATE ". $wpdb->base_prefix ."rpg_usermeta SET hp=hp+1";
+			$wpdb->query($sql);
+		}
         //////////////////////////////////
         // End Actions And Hooks
         //////////////////////////////////
@@ -87,7 +118,7 @@
                  return false;
         }
         if( ! is_admin() ){
-				add_action( 'wp_enqueue_scripts', 'include_jquery' );
+				add_action('wp_enqueue_scripts', 'include_jquery');
                 add_action('wp_footer', 'RPG_js_for_attacks');
                 if(isset($_POST['attacking']) && $_POST['attacking'] == 1){
 				    WpRPG_Attack($_POST['attacker'], $_POST['defender']);
@@ -135,7 +166,6 @@
 				{
 					$defend['score'] = $defend['score'] * '.75'; //Attacker bonus! 
 				}
-                //echo $attack['score'] . " : " . $defend['score']; die;
                 if ( $attack['score'] >= $defend['score'] ){ //attacker wins
 						$loser['pid'] = $defender;
 						$loser['score'] = $defend['score'];
@@ -235,8 +265,8 @@
                 $wpdb->query( $wpdb->prepare( $sql, $loser['hp'], $loser['pid']));
         }
         
-        function calculate_scores($xp, $hp, $level, $attacker){
-                
+        function calculate_scores($xp, $hp, $level, $attacker)
+		{
                 $xp_seed = $xp * rand (1, 5) +3;
                 $hp_seed = $hp * rand ( 1, 4) + 5;
                 $level_seed = $level * rand ( 1, 3);

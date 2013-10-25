@@ -13,10 +13,10 @@
 		if ( ! empty ( $GLOBALS['pagenow'] ) && 'plugins.php' === $GLOBALS['pagenow'] )
 				add_action( 'admin_notices', 'WpRPG_check_admin_notices', 0 );
 
-		$wps_options_pages = array(
-				'_rpg_options');
+		$wprpg_options_pages = array(
+				'wp_rpg_options');
 
-		if ( ! empty ( $GLOBALS['pagenow'] ) && 'admin.php' === $GLOBALS['pagenow'] && in_array($_GET['page'], $wps_options_pages) )
+		if ( ! empty ( $GLOBALS['pagenow'] ) && 'admin.php' === $GLOBALS['pagenow'] && in_array($_GET['page'], $wprpg_options_pages) )
 				add_action('admin_footer', 'WpRPG_options_page_hack');
 }
 
@@ -129,8 +129,24 @@ function RegisterSettings()
 {
 		// Add options to database if they don't already exist
 		add_option('WPRPG_rpg_installed', "", "", "yes");
+		if(get_option('WPRPG_last_cron') == null)
+		{
+			update_option('WPRPG_last_cron', time());
+		}elseif( get_option('WPRPG_last_cron') == false)
+		{
+			add_option('WPRPG_last_cron', time(), "", "yes");
+		}
+		if(get_option('WPRPG_next_cron') == null)
+		{
+			update_option('WPRPG_next_cron', time());
+		}elseif( get_option('WPRPG_next_cron') == false)
+		{
+			add_option('WPRPG_next_cron', time(), "", "yes");
+		}
 		// Register settings that this form is allowed to update
 		register_setting('rpg_settings', 'WPRPG_rpg_installed');
+		register_setting('rpg_settings', 'WPRPG_last_cron');
+		register_setting('rpg_settings', 'WPRPG_next_cron');
 
 }
 //////////////////////////
@@ -155,7 +171,6 @@ function RegisterSettings()
 							`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 							`pid` int(11) unsigned NOT NULL,
 							`last_active` int(11) unsigned default '0',
-							`level` int(11) unsigned default '1',
 							`xp` int(11) unsigned default '0',
 							`hp` int(11) unsigned default '20',
 							`defense` int(11) unsigned NOT NULL default '10',
