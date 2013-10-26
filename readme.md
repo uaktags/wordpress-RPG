@@ -1,9 +1,10 @@
 # Wordpress RPG
--Contributors: Tim G
--Tags:
--Requires at least: 3.5
--Tested up to: 3.5
--Stable tag: 0.0.5
+- Contributors: Tim G
+- Tags:
+- Requires at least: 3.5
+- Tested up to: 3.5
+- Stable tag: 0.0.5
+
 ~Current Version:0.0.5~
 
 
