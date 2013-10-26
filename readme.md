@@ -3,7 +3,7 @@ Contributors: Tim G
 Tags:
 Requires at least: 3.5
 Tested up to: 3.5
-Stable tag: 0.0.3
+Stable tag: 0.0.4
 
 
 
@@ -17,6 +17,9 @@ Now Wordpress visitors have something to keep themselves occupied, build a game 
 Build your own game, on your very popular and easy to use Wordpress Site.
 
 == Changelog ==
+
+= 0.0.4 =
+- Fixed a plugin activation issue.
 
 = 0.0.3 =
 - Added a basic cron system. Works off of 30minute intervals, does calculations when scheduled crons haven't been ran.

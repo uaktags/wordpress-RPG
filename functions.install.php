@@ -79,8 +79,8 @@ function WpRPG_on_activation()
 
 	# Uncomment the following line to see the function in action
 	//exit( var_dump( $_GET ) );
-		get_current_users_activated();
 		check_tables();
+		get_current_users_activated();
 }
 
 function WpRPG_on_deactivation()

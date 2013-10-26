@@ -2,31 +2,13 @@
 /*
    Plugin Name: WP RPG
    Plugin URI: http://wordpress.org/extend/plugins/wp-rpg/
-   Version: 0.0.3
+   Version: 0.0.4
    Author: <a href="http://tagsolutions.tk">Tim G.</a>
    Description: RPG Elements added to WP
    Text Domain: wp-rpg
    License: GPL3
-  */
-
-/*
-
-    This following part of this file is part of WordPress Plugin Template for WordPress.
-
-    WordPress Plugin Template is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    WordPress Plugin Template is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Contact Form to Database Extension.
-    If not, see <http://www.gnu.org/licenses/>.
 */
+
         /////////////////////
 		/// File Includes ///
 		/////////////////////
