@@ -1,10 +1,20 @@
 # Wordpress RPG
+<<<<<<< HEAD
 -Contributors: Tim G
 -Tags:
 -Requires at least: 3.5
 -Tested up to: 3.5
 -Stable tag: 0.0.7
 ~Current Version:0.0.7~
+=======
+- Contributors: Tim G
+- Tags:
+- Requires at least: 3.5
+- Tested up to: 3.5
+- Stable tag: 0.0.5
+
+~Current Version:0.0.5~
+>>>>>>> e2891d051d39364ac216bb9d11d6f841cd32830c
 
 
 ## Description
