@@ -3,8 +3,8 @@
 -Tags:
 -Requires at least: 3.5
 -Tested up to: 3.5
--Stable tag: 0.0.5
-~Current Version:0.0.5~
+-Stable tag: 0.0.7
+~Current Version:0.0.7~
 
 
 ## Description
@@ -17,6 +17,12 @@ Now Wordpress visitors have something to keep themselves occupied, build a game 
 Build your own game, on your very popular and easy to use Wordpress Site.
 
 ## Changelog ==
+
+### 0.0.5-0.0.7 =
+- Wrapped WPRPG inside a Class.
+- Removed most external includes.
+- Created an external Uninstall script due to concerns uninstall wasn't always running (bug).
+- Removed Attack functions for separate module.
 
 ### 0.0.4 =
 - Fixed a plugin activation issue.
