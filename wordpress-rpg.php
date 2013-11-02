@@ -2,7 +2,7 @@
 /*
   Plugin Name: WP RPG
   Plugin URI: http://wordpress.org/extend/plugins/wp-rpg/
-  Version: 0.0.7
+  Version: 0.0.8
   Author: <a href="http://tagsolutions.tk">Tim G.</a>
   Description: RPG Elements added to WP
   Text Domain: wp-rpg
@@ -43,6 +43,7 @@ class WP_RPG
 		add_action('user_register', array($this,'WpRPG_user_register'));
 		add_action('admin_menu', array($this,'add_rpg_to_admin_menu'));
 		add_action('wp_footer', array($this,'check_cron'));
+		add_action('admin_init', array($this,'RegisterSettings'));
 		$this->load_shortcodes();
 	}
 	
@@ -129,12 +130,11 @@ class WP_RPG
 			return;
 		$plugin = isset($_REQUEST['plugin']) ? $_REQUEST['plugin'] : '';
 		check_admin_referer("activate-plugin_{$plugin}");
-
 		# Uncomment the following line to see the function in action
 		//exit( var_dump( $_GET ) );
 		$this->check_tables();
 		$this->get_current_users_activated();
-		return true;
+		return;
 	}
 
 	public function WpRPG_on_deactivation() {
@@ -155,9 +155,9 @@ class WP_RPG
 			add_option('WPRPG_last_cron', time(), "", "yes");
 		}
 		if (get_option('WPRPG_next_cron') == null) {
-			update_option('WPRPG_next_cron', time());
+			update_option('WPRPG_next_cron', (time() - (time() % 1800) + 1800));
 		} elseif (get_option('WPRPG_next_cron') == false) {
-			add_option('WPRPG_next_cron', time(), "", "yes");
+			add_option('WPRPG_next_cron', (time() - (time() % 1800) + 1800), "", "yes");
 		}
 		// Register settings that this form is allowed to update
 		register_setting('rpg_settings', 'WPRPG_rpg_installed');
@@ -217,6 +217,7 @@ class WP_RPG
 
 	public function WpRPG_user_register($user_id) {
 		global $wpdb;
+		$wpdb->show_errors();
 		$wpdb->insert(
 				$wpdb->base_prefix . "rpg_usermeta", array(
 			'pid' => $user_id
@@ -228,6 +229,7 @@ class WP_RPG
 
 	public function get_current_users_activated() {
 		global $wpdb;
+		$wpdb->show_errors();
 		$user_ids = $wpdb->get_col(
 				"
 							SELECT        ID
@@ -236,10 +238,9 @@ class WP_RPG
 		);
 		foreach ($user_ids as $id) {
 			if ($wpdb->get_row("SELECT * FROM " . $wpdb->base_prefix . "rpg_usermeta WHERE pid = " . $id) == null) {
-				WpRPG_user_register($id);
+				$this->WpRPG_user_register($id);
 			}
 		}
-		return null;
 	}
 	
 	/*
@@ -249,12 +250,7 @@ class WP_RPG
 	function wp_rpg_options() {
 		echo 'Test';
 		echo '<br />Last Cron: ' . date('Y-m-d:H:i:s', get_option('WPRPG_last_cron'));
-		echo '<br />Number of 30mins since then: ' . time_elapsed(get_option('WPRPG_last_cron'));
+		echo '<br />Number of 30mins since then: ' . $this->time_elapsed(get_option('WPRPG_last_cron'));
 		echo '<br />Next Cron: ' . date('Y-m-d:H:i:s', get_option('WPRPG_next_cron'));
 	}
 }
-
-
-
-
-
