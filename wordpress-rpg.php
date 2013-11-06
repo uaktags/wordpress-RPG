@@ -2,7 +2,7 @@
 /*
   Plugin Name: WP RPG
   Plugin URI: http://wordpress.org/extend/plugins/wp-rpg/
-  Version: 0.0.8
+  Version: 0.3
   Author: <a href="http://tagsolutions.tk">Tim G.</a>
   Description: RPG Elements added to WP
   Text Domain: wp-rpg
