@@ -3,8 +3,7 @@
 -Tags:
 -Requires at least: 3.5
 -Tested up to: 3.5
--Stable tag: 0.0.8
-~Current Version:0.0.8~
+-Stable tag: 0.5
 
 
 ## Description
@@ -17,6 +16,17 @@ Now Wordpress visitors have something to keep themselves occupied, build a game 
 Build your own game, on your very popular and easy to use Wordpress Site.
 
 ## Changelog ==
+
+### 0.2 - 0.5
+- Fixes to update script
+- Fixed errors being found on select systems
+- Fixed Activation issues
+
+### 0.1
+- Most Formatting fixes
+- Connected to private repo for updates
+- Removed GitHub updater until its fixed
+- Added Tab Options panel
 
 ### 0.0.8
 - Fixed activation issue due to out of scope function call.
