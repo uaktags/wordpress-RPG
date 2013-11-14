@@ -2,7 +2,7 @@
 /*
   Plugin Name: WP RPG
   Plugin URI: http://wordpress.org/extend/plugins/wp-rpg/
-  Version: 0.5
+  Version: 0.6
   Author: <a href="http://tagsolutions.tk">Tim G.</a>
   Description: RPG Elements added to WP
   Text Domain: wp-rpg
@@ -37,9 +37,7 @@ register_deactivation_hook(__FILE__, array($rpg, 'wpRPG_on_deactivation'));
 class wpRPG {
 
     static $file = __FILE__;
-    static $apiurl = 'http://projects.tagsolutions.tk/';
-
-    ////////////
+	////////////
     /// INIT ///
     ////////////
     public function __construct() 
@@ -47,7 +45,10 @@ class wpRPG {
         add_action('user_register', array($this, 'wpRPG_user_register'));
         add_action('wp_footer', array($this, 'wpRPG_check_cron'));
         $this->wpRPG_load_shortcodes();
-    }
+		$this->default_tabs = array('homepage' => 'Home', 'cron' => 'Cron Info');
+		$this->plugin_slug = basename(dirname(__FILE__));
+		$this->api_url = 'http://projects.tagsolutions.tk/';
+	}
 
     ////////////////
     /// END INIT ///
@@ -262,9 +263,71 @@ class wpRPG {
             exit;
         }
     }
-
+	
+	public function wpRPG_get_admin_tab_header()
+	{
+		$tabs = $this->default_tabs;
+		$admin_tabs = apply_filters('wpRPG_add_admin_tab_header', $tabs);
+		return $admin_tabs;
+	}
+	
+	public function wprpg_default_tabs($tab)
+	{
+		switch($tab)
+		{
+			case 'cron':
+				$html = "<tr>";
+				$html .= "<td>";
+				$html .= "<h3>Cron Information</h3>";
+				$html .= "</td>";
+				$html .= "</tr>";
+				$html .= "<tr>";
+				$html .= "<td>";
+				$html .= "<span class='description'>Last Cron:</span>"; 
+				$html .= "<span>". date('Y-m-d:H:i:s', get_option('wpRPG_last_cron')) ."</span>";
+				$html .= "</td>";
+				$html .= "</tr>";
+				$html .= "<tr>";
+				$html .= "<td>";
+				$html .= "<span class='description'>Number of 30mins since then:</span>"; 
+				$html .= "<span>". $this->wpRPG_time_elapsed(get_option('wpRPG_last_cron')) ."</span>";
+				$html .= "</td>";
+				$html .= "</tr>";
+				$html .= "<tr>";
+				$html .= "<td>";
+				$html .= "<span class='description'>Next Cron:</span>"; 
+				$html .= "<span>" .date('Y-m-d:H:i:s', get_option('wpRPG_next_cron'))."</span>";
+				$html .= "</td>";
+				$html .= "</tr>";
+				return $html;
+				break;
+			case 'homepage':
+				$html = "<tr>";
+				$html .= "<td>";
+				$html .= "<h3>Welcome to Wordpress RPG!</h3>";
+				$html .= "</td>";
+				$html .= "</tr>";
+				$html .= "<tr>";
+				$html .= "<td>";
+				$html .= "<span class='description'>Total Players:</span>";
+				$html .= "<span>". count_users()['total_users'] ."</span>";
+				$html .= "</td>";
+				$html .= "</tr>";
+				$html .= "<tr><td>".$this->wpRPG_update_avail()."</td></tr>";
+				return $html;
+				break;
+		}
+	}
+	
+	public function wpRPG_get_admin_tabs()
+	{
+		$tabs = array('cron'=> $this->wprpg_default_tabs('cron'), 'homepage'=> $this->wprpg_default_tabs('homepage'));
+		$admin_tabs = apply_filters('wpRPG_add_admin_tabs', $tabs);
+		return $admin_tabs;
+	}
+	
     public function wpRPG_admin_tabs($current = 'homepage') {
-        $tabs = array('homepage' => 'Home', 'cron' => 'Cron Info');
+        $tabs = $this->wpRPG_get_admin_tab_header();
         $links = array();
         echo '<div id="icon-themes" class="icon32"><br></div>';
         echo '<h2 class="nav-tab-wrapper">';
@@ -284,7 +347,7 @@ class wpRPG {
             <h2>wpRPG Settings</h2>
 
         <?php
-        if ('true' == esc_attr($_GET['updated']))
+        if (isset($_GET['updated']) && 'true' == esc_attr($_GET['updated']))
             echo '<div class="updated" ><p>Theme Settings updated.</p></div>';
 
         if (isset($_GET['tab']))
@@ -306,47 +369,9 @@ class wpRPG {
                 $tab = 'homepage';
 
             echo '<table class="form-table">';
-            switch ($tab) {
-                case 'cron':
-                    ?>
-                                <th><label for="wpRPG_intro">Cron Information</label></th>
-                                <tr>
-                                    <td>
-                                        <span class="description">Last Cron:</span> 
-                                        <span><?php echo date('Y-m-d:H:i:s', get_option('wpRPG_last_cron')); ?></span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="description">Number of 30mins since then:</span> 
-                                        <span><?php echo $this->wpRPG_time_elapsed(get_option('wpRPG_last_cron')); ?></span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="description">Next Cron:</span> 
-                                        <span><?php echo date('Y-m-d:H:i:s', get_option('wpRPG_next_cron')); ?></span>
-                                    </td>
-                                </tr>
-                                <?php
-                                break;
-                            case 'homepage':
-                                ?>
-                                <tr>
-                                    <td>
-                                        <h3>Welcome to Wordpress RPG!</h3>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="description">Total Players:</span>
-                                        <span><?= count_users()['total_users'] ?></span>
-                                    </td>
-                                </tr>
-                                <?php
-                                break;
-                        }
-                        echo '</table>';
+            $tabs = $this->wpRPG_get_admin_tabs();
+			echo $tabs[$tab];
+			echo '</table>';
                     }
                     ?>
                     <p class="submit" style="clear: both;">
@@ -360,6 +385,50 @@ class wpRPG {
         </div>
         <?php
     }
+	
+	public function wpRPG_prepare_request($action, $args) {
+		global $wp_version;
+
+		return array(
+			'body' => array(
+				'action' => $action,
+				'request' => serialize($args),
+				'api-key' => md5(get_bloginfo('url'))
+			),
+			'user-agent' => 'WordPress/' . $wp_version . '; ' . get_bloginfo('url')
+		);
+	}
+	
+	function wpRPG_update_avail()
+	{
+		$request_args = array(
+			'slug' => $this->plugin_slug,
+			'version' => $this->plugin_slug . '/' . $this->plugin_slug . '.php',
+		);
+
+		$request_string = $this->wpRPG_prepare_request('basic_check', $request_args);
+
+		// Start checking for an update
+		$raw_response = wp_remote_post($this->api_url, $request_string);
+		
+		if (!is_wp_error($raw_response) && ($raw_response['response']['code'] == 200))
+		{
+			$response = unserialize($raw_response['body']);
+			$plugin_info = get_site_transient('update_plugins');
+			$current_version = $plugin_info->checked[$this->plugin_slug . '/' . $this->plugin_slug . '.php'];
+			if($response->new_version == $current_version)
+			{
+				return 'wpRPG Is Up To Date';
+			}elseif($response->new_version < $current_version){
+				return 'wpRPG Version is higher than what\'s listed. You\'re presumably running a unsupported beta!';
+			}else{
+				return 'wpRPG has a new update! Current Version: '.$current_version. ' || Current Update: '.$response->new_version.' Released on '.$response->date;
+			}
+		}else{
+			$response = $raw_response->get_error_message();
+		}
+		return $response;
+	}	
 }
 
 function wpRPG_check_for_plugin_update($checked_data) 
@@ -373,7 +442,7 @@ function wpRPG_check_for_plugin_update($checked_data)
 		'version' => $checked_data->checked[$plugin_slug . '/' . $plugin_slug . '.php'],
 	);
 
-	$request_string = wpRPG_prepare_request('basic_check', $request_args);
+	$request_string = wpRPG::wpRPG_prepare_request('basic_check', $request_args);
 
 	// Start checking for an update
 	$raw_response = wp_remote_post($api_url, $request_string);
@@ -398,7 +467,7 @@ function wpRPG_api_call($def, $action, $args) {
 	$current_version = $plugin_info->checked[$plugin_slug . '/' . $plugin_slug . '.php'];
 	$args->version = $current_version;
 
-	$request_string = Attack_prepare_request($action, $args);
+	$request_string = wpRPG::wpRPG_prepare_request($action, $args);
 
 	$request = wp_remote_post($api_url, $request_string);
 
@@ -414,15 +483,4 @@ function wpRPG_api_call($def, $action, $args) {
 	return $res;
 }
 
-function wpRPG_prepare_request($action, $args) {
-	global $wp_version;
-
-	return array(
-		'body' => array(
-			'action' => $action,
-			'request' => serialize($args),
-			'api-key' => md5(get_bloginfo('url'))
-		),
-		'user-agent' => 'WordPress/' . $wp_version . '; ' . get_bloginfo('url')
-	);
-}
+?>
