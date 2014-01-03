@@ -26,15 +26,12 @@ if(!class_exists('wpRPG'))
 		////////////
 		public function __construct() 
 		{
-			//add_action('user_register', array($this, 'wpRPG_user_register'));
-			//add_action('wp_footer', array($this, 'wpRPG_check_cron'));
+			add_action('wp_footer', array($this, 'wpRPG_check_cron'));
 			$this->file_name = __FILE__;
 			$this->plug_version = '0.10.9';
 			$this->plug_slug = basename(dirname(__FILE__));
 			$this->wpRPG_load_shortcodes();
 			$this->default_tabs = array('homepage' => 'Home', 'pages' => 'Pages', 'cron' => 'Cron Info');
-			$this->plugin_slug = basename(dirname(__FILE__));
-			//add_filter('registration_errors', array($this,'registration_errors'), 10, 3);
 			
 		}
 
@@ -260,22 +257,6 @@ if(!class_exists('wpRPG'))
 			return false;
 		}
 
-		public function wpRPG_user_register($user_id) {
-			global $wpdb;
-			$wpdb->show_errors();
-			if(!$this->wpRPG_is_playing($user_id))
-			{
-				$wpdb->insert(
-						$wpdb->prefix . "rpg_usermeta", array(
-					'pid' => $user_id
-						), array(
-					'%d'
-						)
-				);
-				$wpdb->query("UPDATE ". $wpdb->prefix ."rpg_usermeta SET race = ".$_POST['race']." WHERE pid = $user_id");
-			}
-		}
-
 		public function wpRPG_get_current_users_activated() {
 			global $wpdb;
 			$wpdb->show_errors();
@@ -469,38 +450,6 @@ if(!class_exists('wpRPG'))
 			</div>
 			<?php
 		}
-		   //1. Add a new form element...
-		
-		function register_form (){
-			$race = ( isset( $_POST['race'] ) ) ? $_POST['race']: '';
-			?>
-			<p>
-				<label for="race"><?php _e('Race','mydomain') ?><br />
-					<select id="race" name="race">
-					<?php
-						global $wpdb;
-						$races = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."rpg_race");
-						foreach($races as $race)
-						{
-							?>
-								<option value="<?php echo esc_attr(stripslashes($race->ID)); ?>" ><?php echo $race->title ?> </option>
-							<?php
-						}
-							?>
-					</select>
-				</label>
-			</p>
-			<?php
-		}
-
-		//2. Add validation. In this case, we make sure first_name is required.
-		function registration_errors ($errors, $sanitized_user_login, $user_email) {
-
-			if ( empty( $_POST['race'] ) )
-				$errors->add( 'race_error', __('<strong>ERROR</strong>: You must include a first name.','mydomain') );
-
-			return $errors;
-		}
 	}
 }
 
@@ -572,7 +521,7 @@ if(!class_exists('wpRPG_Profiles'))
 			return $this->getProfile($pid);
 		}
 		
-		static function getProfile($player_id ) 
+		function getProfile($player_id ) 
 		{
 			global $wpdb, $current_user;
 			$username = get_query_var( 'username' );
@@ -580,6 +529,7 @@ if(!class_exists('wpRPG_Profiles'))
 			{
 				$sql = "SELECT um.*, u.* FROM " . $wpdb->prefix . "rpg_usermeta um JOIN " . $wpdb->base_prefix . "users u WHERE um.pid=u.id AND u.id=". $player_id." OR u.user_nicename='". $username ."'";
 				$res = $wpdb->get_results($sql);
+				
 				if($res)
 				{
 					global $wp;
@@ -595,7 +545,12 @@ if(!class_exists('wpRPG_Profiles'))
 					$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. $this->plug_version .'</a></footer>'; 
 				}
 			}else{
-				return wpRPG_Profiles::getProfile($current_user->ID);
+				if($current_user->ID != 0)
+				{
+					return $this->getProfile($current_user->ID);
+				}else{
+					return 'Not Logged In';
+				}
 			}
 			return $result;
 		}
@@ -813,6 +768,70 @@ if(!class_exists('wpRPG_Hospital'))
 	}
 }
 
+if(!class_exists('wpRPG_Registration'))
+{
+	class wpRPG_Registration extends wpRPG
+	{
+		function __construct()
+		{
+			parent::__construct();
+			add_action('user_register', array($this, 'user_register'));
+			add_filter('registration_errors', array($this,'registration_errors'), 10, 3);
+		}
+
+		public function user_register($user_id) 
+		{
+			global $wpdb;
+			$wpdb->show_errors();
+			if(!$this->wpRPG_is_playing($user_id))
+			{
+				$wpdb->insert(
+						$wpdb->prefix . "rpg_usermeta", array(
+					'pid' => $user_id
+						), array(
+					'%d'
+						)
+				);
+				$wpdb->query("UPDATE ". $wpdb->prefix ."rpg_usermeta SET race = ".$_POST['race']." WHERE pid = $user_id");
+			}
+		}
+
+				   //1. Add a new form element...
+		
+		function register_form (){
+			$race = ( isset( $_POST['race'] ) ) ? $_POST['race']: '';
+			?>
+			<p>
+				<label for="race"><?php _e('Race','mydomain') ?><br />
+					<select id="race" name="race">
+					<?php
+						global $wpdb;
+						$races = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."rpg_race");
+						foreach($races as $race)
+						{
+							?>
+								<option value="<?php echo esc_attr(stripslashes($race->ID)); ?>" ><?php echo $race->title ?> </option>
+							<?php
+						}
+							?>
+					</select>
+				</label>
+			</p>
+			<?php
+		}
+
+		//2. Add validation. In this case, we make sure first_name is required.
+		function registration_errors ($errors, $sanitized_user_login, $user_email) {
+
+			if ( empty( $_POST['race'] ) )
+				$errors->add( 'race_error', __('<strong>ERROR</strong>: You must include a first name.','mydomain') );
+
+			return $errors;
+		}
+	
+	}
+}
+
 class testit extends wpRPG
 {
 	function __construct()
@@ -831,6 +850,10 @@ class testit extends wpRPG
 
 
 $rpg = new wpRPG;
+$profiles = new wpRPG_Profiles;
+$members = new wpRPG_Members;
+$hospital = new wpRPG_Hospital;
+$rpgRegister = new wpRPG_Registration;
 if (is_admin()) {
     add_action('admin_menu', array($rpg, 'wpRPG_settings_page_init'));
     add_action('admin_init', array($rpg, 'wpRPG_RegisterSettings'));
@@ -838,15 +861,11 @@ if (is_admin()) {
 if(!is_admin())
 {
 	add_action('init', array($rpg, 'updateLastActive'));
-	add_action('register_form',array($rpg, 'register_form'));
+	add_action('register_form',array($rpgRegister, 'register_form'));
 			
 }
-$plugin_slug = basename(dirname(__FILE__));
+
 
 register_activation_hook(__FILE__, array($rpg, 'wpRPG_on_activation'));
 register_deactivation_hook(__FILE__, array($rpg, 'wpRPG_on_deactivation'));
-$profiles = new wpRPG_Profiles;
-$members = new wpRPG_Members;
-$hospital = new wpRPG_Hospital;
-
 ?>
