@@ -1,12 +1,12 @@
-# Wordpress RPG
+=== Wordpress RPG ===
 -Contributors: Tim G
 -Tags:
 -Requires at least: 3.5
--Tested up to: 3.5
--Stable tag: 0.6
+-Tested up to: 3.8
+-Stable tag: 0.10.9
 
 
-## Description
+== Description ==
 Inspired by the ezRPG Engine (www.ezrpgproject.net), Wordpress RPG (WP-RPG) looks to add RPG game elements to be built off of Wordpress as it's framework.
 
 While this is an early Alpha release, the ultimate goal is to allow developers build plugins that will expand WP-RPG to add more features. Other plugins, using
@@ -15,7 +15,15 @@ hooks/actions, can then tap into WP-RPG and add RPG elements to their offerings.
 Now Wordpress visitors have something to keep themselves occupied, build a game along side a popular blog, add game elements to your Multisite and build an MMORPG structure.
 Build your own game, on your very popular and easy to use Wordpress Site.
 
-## Changelog ==
+== Changelog ==
+
+### 0.7 - 0.10.9
+- Combined the Profile, Hospital, and Members function into the core wpRPG plugin file.
+- Removed github sync to comply with wordpress repo requirements.
+- Added multisite compatiability with db calls.
+- Added a race usermeta during signups. Races have different bonuses which will be expanded on with the Attack module
+- Created a default profile look and feel.
+- Numerous other changes.
 
 ### 0.6
 - Added Filters for the admin pages. 
