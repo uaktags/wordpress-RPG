@@ -21,21 +21,20 @@
 if(!class_exists('wpRPG'))
 {
 	class wpRPG {
-
-		static $file = __FILE__;
-		static $version = '0.10.9';
 		////////////
 		/// INIT ///
 		////////////
 		public function __construct() 
 		{
-			add_action('user_register', array($this, 'wpRPG_user_register'));
-			add_action('wp_footer', array($this, 'wpRPG_check_cron'));
+			//add_action('user_register', array($this, 'wpRPG_user_register'));
+			//add_action('wp_footer', array($this, 'wpRPG_check_cron'));
+			$this->file_name = __FILE__;
+			$this->plug_version = '0.10.9';
+			$this->plug_slug = basename(dirname(__FILE__));
 			$this->wpRPG_load_shortcodes();
 			$this->default_tabs = array('homepage' => 'Home', 'pages' => 'Pages', 'cron' => 'Cron Info');
 			$this->plugin_slug = basename(dirname(__FILE__));
-			$this->api_url = 'http://projects.tagsolutions.tk/';
-			add_filter('registration_errors', array($this,'registration_errors'), 10, 3);
+			//add_filter('registration_errors', array($this,'registration_errors'), 10, 3);
 			
 		}
 
@@ -206,7 +205,7 @@ if(!class_exists('wpRPG'))
 		/////////////////////////
 		/// Install Functions ///
 		/////////////////////////
-
+/*
 		public function wpRPG_check_tables() {
 			global $wpdb;
 			$sql = "CREATE TABLE IF NOT EXISTS " . $wpdb->prefix . "rpg_usermeta (
@@ -232,7 +231,7 @@ if(!class_exists('wpRPG'))
 			$this->wpRPG_default_levels();
 			return true;
 		}
-		
+	*/	
 		public function wpRPG_default_levels()
 		{
 			global $wpdb;
@@ -507,13 +506,12 @@ if(!class_exists('wpRPG'))
 
 if(!class_exists('wpRPG_Profiles'))
 {
-	class wpRPG_Profiles 
+	class wpRPG_Profiles extends wpRPG
 	{
 		
 		function __construct()
 		{
-			$this->wpRPG = new wpRPG;
-			$this->plugslug = basename(dirname(__FILE__));
+			parent::__construct();
 			add_shortcode('view_profile', array($this, 'profileShortCodeVars'));
 			add_shortcode('permalink',array($this, 'custom_permalink') );
 			add_action('wp_ajax_profile', array($this,'profileCallback'));
@@ -574,7 +572,7 @@ if(!class_exists('wpRPG_Profiles'))
 			return $this->getProfile($pid);
 		}
 		
-		static function getProfile($player_id) 
+		static function getProfile($player_id ) 
 		{
 			global $wpdb, $current_user;
 			$username = get_query_var( 'username' );
@@ -584,60 +582,17 @@ if(!class_exists('wpRPG_Profiles'))
 				$res = $wpdb->get_results($sql);
 				if($res)
 				{
+					global $wp;
+					  $return_template = dirname( __FILE__ ) . '/templates/view_profile.php';
+					  include($return_template);
+						die();					  
 					//wp_die(var_dump($res));
-					$result = '<div id="rpg_area">';
-					$result .= '
-									<h1>User Profile</h1>
-									<div class="simpleTabsContent" id="bio" style="height:500px;">
-										<div name="player_heading">
-											<h3>'.$res[0]->user_nicename.'</h3>
-										</div>
-										<div>
-	<table width=100% style="text-align:center;"><tr><td>Level: '. wpRPG::wpRPG_player_level($res[0]->xp) .'</td><td>Overall Rank: '. wpRPG::wpRPG_player_rank($res[0]->ID) .'</td></tr></table>
-										</div>
-										<br/>
-										<div style="width:47%; float:left;">
-											<ul style="list-style:none;">
-												<li style="width:100%;">
-													<table>
-													<tr><th>Player</th></tr>
-													<tr><td><img src="' . plugins_url('images/avatar.png', __FILE__) . '" alt="default avatar" /></td></tr>
-													<tr><td>' . (wpRPG::getOnlineStatus($res[0]->ID)?'Online':'Offline') .'</td></tr>
-													</table>
-												</li>
-												<li style="width:100%">
-													<table>
-													<tr><th>Bio</th></tr>
-													<tr><td>Male/Female</td></tr>
-													<tr><td>Contact Info</td></tr>
-													</table>
-												</li>
-											</ul>
-										</div>
-										<div style="float:right;margin-right:auto;width:47%">
-											<ul style="list-style:none;">
-												<li style="width:100%;">
-													<table>
-													<tr><th>Actions</th></tr><tr><td>Message Player</td></tr>
-													<tr><td>Attack Player</td></tr>
-													<tr><td>Add to friends list</td></tr></table>
-												</li>
-												<li style="width:100%">
-													<table>
-	<tr><th>Stats</th></tr>
-													<tr><td>Gold: '. (!$res[0]->gold?"Not Used":$res[0]->gold).'</td></tr>
-	</table>
-												</li>
-											</ul>
-										</div>
-									</div>';
-					$result .= '</div><br/><br/>';
 				}else{
 					$result = '<div id="rpg_area">';
 					$result .= '<h1>User Not Found</h1>';
 					$result .= '</div><br/><br/>';
 					$result .= '<footer style="display:block;margin: 0 2%;border-top: 1px solid #ddd;padding: 20px 0;font-size: 12px;text-align: center;color: #999;">';
-					$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. wpRPG::$version .'</a></footer>'; 
+					$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. $this->plug_version .'</a></footer>'; 
 				}
 			}else{
 				return wpRPG_Profiles::getProfile($current_user->ID);
@@ -709,11 +664,12 @@ if(!class_exists('wpRPG_Profiles'))
 
 if(!class_exists('wpRPG_Members'))
 {
-	class wpRPG_Members 
+	class wpRPG_Members extends wpRPG
 	{
 
 		function __construct()
 		{
+			parent::__construct();
 			add_shortcode('list_players', array($this, 'listPlayers'));
 		}
 
@@ -724,7 +680,7 @@ if(!class_exists('wpRPG_Members'))
 			$result = '<div id="rpg_area"><table id="members" border=1>';
 			$result .= '<tr><th>MemberName</th><th>XP</th><th>HP</th><th>Level</th>'.(is_user_logged_in()?'<th>Actions</th>':'').'</tr>';
 			foreach ($res as $u) {
-				$result .= '<tr id="player_'.$u->ID.'"><td><a href="" id="view-profile" name="'.$u->ID.'">' . $u->user_nicename . '</a></td><td>' . $u->xp . '</td><td>' . $u->hp . '</td><td>' . wpRPG::wpRPG_player_level($u->xp) . '</td><td>';
+				$result .= '<tr id="player_'.$u->ID.'"><td><a href="" id="view-profile" name="'.$u->ID.'">' . $u->user_nicename . '</a></td><td>' . $u->xp . '</td><td>' . $u->hp . '</td><td>' . $this->wpRPG_player_level($u->xp) . '</td><td>';
 					if(is_user_logged_in()){
 						$result .= ($u->ID != $current_user->ID? $this->listPlayers_getLoggedIn_Actions($u->ID):'');
 					}
@@ -732,7 +688,7 @@ if(!class_exists('wpRPG_Members'))
 			}
 			$result .= '</table></div>';
 			$result .= '<footer style="display:block;margin: 0 2%;border-top: 1px solid #ddd;padding: 20px 0;font-size: 12px;text-align: center;color: #999;">';
-			$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. wpRPG::$version .'</a></footer>';
+			$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. $this->plug_version .'</a></footer>';
 			return $result;
 		}
 		
@@ -747,11 +703,12 @@ if(!class_exists('wpRPG_Members'))
 
 if(!class_exists('wpRPG_Hospital'))
 {
-	class wpRPG_Hospital 
+	class wpRPG_Hospital extends wpRPG
 	{
 
 		function __construct()
 		{
+			parent::__construct();
 			add_shortcode('wprpg_hospital', array($this, 'showHospital'));
 			add_action('wp_ajax_hospital', array($this,'hospitalCallback'));
 			add_action('wp_ajax_nopriv_hospital', array($this,'hospitalCallback'));
@@ -792,7 +749,7 @@ if(!class_exists('wpRPG_Hospital'))
 									
 								</div>';
 				$result .= '</div><br/><br/>';
-				$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. wpRPG::$version .'</a></footer>'; 
+				$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. $this->plug_version .'</a></footer>'; 
 			}
 			return $result;
 		}
@@ -856,17 +813,19 @@ if(!class_exists('wpRPG_Hospital'))
 	}
 }
 
-class testit
+class testit extends wpRPG
 {
 	function __construct()
 	{
+		parent::__construct();
 		add_filter('listPlayers_Loggedin_Actions', array($this, 'add_filterss'));
 	}
 	
 	function add_filterss($var)
 	{
-		$id = $var[1];
-		return array($var[0].'<button id="attack" name="'.$var[1].'">Attack</button>', $var[1]);
+		//$id = $var[1];
+		//return array($var[0].'<button id="attack" name="'.$var[1].'">Attack</button>', $var[1]);
+		wp_die($this->file_name);
 	}
 }
 
@@ -889,4 +848,5 @@ register_deactivation_hook(__FILE__, array($rpg, 'wpRPG_on_deactivation'));
 $profiles = new wpRPG_Profiles;
 $members = new wpRPG_Members;
 $hospital = new wpRPG_Hospital;
+
 ?>
