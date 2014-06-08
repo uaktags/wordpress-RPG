@@ -1,24 +1,25 @@
 <?php
+$wpRPG = new wpRPG;
 ?>
 <div id="rpg_area">
 					
 									<h1>User Profile</h1>
 									<div class="simpleTabsContent" id="bio" style="height:500px;">
 										<div name="player_heading">
-											<h3><?php echo $res[0]->user_nicename ?></h3>
+											<h3><?php echo $res->nickname ?></h3>
 										</div>
 										<div>
 										<table width=100% style="text-align:center;">
 											<tr>
 												<td>Level: 
-													<?php echo wpRPG::wpRPG_player_level($res[0]->xp) ?>
+													<?php echo $wpRPG->wpRPG_player_level($res->xp) ?>
 												</td>
 												<td>Overall Rank: 
-													<?php echo wpRPG::wpRPG_player_rank($res[0]->ID) ?>
+													<?php echo $wpRPG->wpRPG_player_rank($res->ID) ?>
 												</td>
 											</tr>
 											<?php 
-												if($res[0]->ID == $current_user->ID) { 
+												if($res->ID == $current_user->ID) { 
 											?> 
 											<tr>
 												<td>Your Profile Link: <a href="
@@ -41,8 +42,8 @@
 												<li style="width:100%;">
 													<table>
 													<tr><th>Player</th></tr>
-													<tr><td><?php echo get_avatar($res[0]->ID); ?></td></tr>
-													<tr><td><?php echo (wpRPG::getOnlineStatus($res[0]->ID)?'Online':'Offline') ?></td></tr>
+													<tr><td><?php echo get_avatar($res->ID); ?></td></tr>
+													<tr><td><?php echo ($wpRPG->getOnlineStatus($res->ID)?'Online':'Offline') ?></td></tr>
 													</table>
 												</li>
 												<li style="width:100%">

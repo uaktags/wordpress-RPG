@@ -4,7 +4,7 @@ Tags: rpg, wpRPG, Role Playing Game, games, ezRPG
 Donate link: http://tagsolutions.tk/donate/
 Requires at least: 3.6
 Tested up to: 3.8
-Stable tag: 1.0.9
+Stable tag: 1.0.18
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,49 @@ No, this plugin is an \"engine\" or \"framework\" to build your RPG. With the ad
 
 
 == Changelog ==
+= 1.0.18 =
+- Fixed the Registration Plugin which had an error with registering new users.
+
+= 1.0.17r1 =
+- Reupload the files without ending ?> in the classes to fix unexpected output messages.
+
+= 1.0.17 =
+- Deprecated the Player class name from "Player" to "wpRPG_Player".
+- Fixed a DebugFunction error that was in the Array causing it to not preform as expected.
+
+= 1.0.16 =
+- Updated an issue in the Player Class which caused unexpected results when updating a meta that had the value of 0, the function thought it was a value of "false", and provided unexpected results.
+- Added a Plugin_Class which will handle anything that's strictly related to extended plugins such as the Plugin Manager.
+- Added a plugin manager to visually see and control all plugins that extend wpRPG. Plugins must register to use the manager.
+
+= 1.0.15 =
+- Created a Player Class which handles all Player_Meta functions
+- Updated bundled plugins to use Player Class
+
+= 1.0.14 = 
+- Fixed the Level Manager issue.
+- Fixed a bunch of issues with the Debug functions.
+- There was an issue causing the 1.0.3 Attack Module from working.
+
+= 1.0.12 - 1.0.13 =
+- Converted rpg_usermeta tables to native WP usermeta. Now instead of custom sql and joins, you use get_user_meta and update_user_meta.
+- Added a check for Cron Enable/Disabled tag. Wasn't properly in place before.
+- Removed the install for rpg_usermeta for reason listed above.
+- Fixed the get_player_meta function for error checking.
+- get_player_meta function also calls a new function 'get_meta' combines all rpg_usermeta with wp_user and meta. Creates a super variable for the player.
+- Added a Reset Gold in the debug panel.
+- Separated the Profile Pages from the Core class. Now the pages tab is hooked by plugins to utilize.
+- The Pages panel on the admin page also displays the shortcodes needed for those pages. This is hooked with the plugins too.
+- Completely removed races from the core class.
+
+= 1.0.11 = 
+- Made extensive progress with the Profiles plugin. Took away the attack profiles and used the Profile's native functionality. Also the members plugin handles the list_players instead of the Attack plugin handling it.
+- Alot of changes have been made with the Attack plugin as well. Until WP approves my WPRPG_Attack request, I've zipped and added the attack plugin in the /plugins/ folder.
+- You'll also have the opportunity to change the way the Profiles/Members page looks and acts. Currently, it checks if your THEME has a directory called "templates/wprpg/" and looks for the file "view_profile.php" and "list_players.php". This allows you to customize your Lists / Profiles how you see fit without worrying about my updates screwing it up :-).
+- Everything in my tests feels very stable so far. Using the new attack module I included, you'll see that you can add things to the List_Players actions and the Profile sections, like the attack button, which is dynamically added rather than statically.
+= 1.0.10 =
+- Fixed a bug found in the plugins in which they weren't pointing to the correct directories. 
+
 = 1.0.9 =
 - Created a jQuery Filter so that we can add all wpRPG jquery code to a single code base for organization. It also ensures that wpRPG required code is executed prior to plugin code.
 

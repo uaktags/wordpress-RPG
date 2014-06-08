@@ -34,10 +34,14 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
                  $this,
                 'insertQueryVars' 
             ) );
-            add_filter( 'wpRPG_add_admin_tab_header', array(
+            /*add_filter( 'wpRPG_add_admin_tab_header', array(
                  $this,
                 'addAdminTab_Header' 
-            ) );
+            ) );*/
+			add_filter( 'wpRPG_add_plugins', array(
+					$this, 'add_plugin'
+				)
+			);
             add_filter( 'wpRPG_add_admin_tabs', array(
                  $this,
                 'addAdminTab' 
@@ -66,6 +70,10 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
                      $this,
                     'includedJS' 
                 ) );
+				add_filter( 'wpRPG_add_pages_settings', array(
+					$this,
+					'add_page_settings'
+				) );
 			}
 			
         }
@@ -75,6 +83,13 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
                 add_option( 'wpRPG_Profile_Page', 'Profile', "", "yes" );
             }
 			register_setting( 'rpg_settings', 'wpRPG_Profile_Page' );
+		}
+		
+		function add_page_settings( $pages ) {
+			$setting = array(
+				'Profile'=> array('name'=>'Profile', 'shortcode'=>'[view_profile]')
+			);
+			return array_merge( $pages, $setting );
 		}
 		
 		/**
@@ -87,15 +102,12 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 			$viewed = get_user_by('login',get_query_var( 'username' ));
 			if(!$viewed)
 			{
-				$viewed = $current_user->ID;
-				$player = $this->get_player_meta($viewed);
+				$player = new wpRPG_Player($current_user->ID);
 			}else{
-				//wp_die(var_dump($viewed));
 				$viewed = $viewed->ID;
-				$player = $this->get_player_meta($viewed);
+				$player = $this->get_meta($viewed);
 			}
-			//wp_die(var_dump($player));
-			return $player[0];
+			return $player;
 		}
 		
 		/**
@@ -105,10 +117,7 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 		 */
 		function add_profile_section_top_right($actions)
 		{
-			global $current_user;
-			$profile_tabs = array(
-                 'attack' =>($current_user?'<a href="/attack/1">Attack</a>':null),
-            );
+			$profile_tabs = array(); //Intentionally left blank
             return array_merge( $actions, $profile_tabs );
         }		
 		
@@ -229,7 +238,7 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 		}
 		
         public function getProfile( $player_id ) {
-            global $wpdb, $current_user;
+			global $current_user;
             $username = get_query_var( 'username' );
             if ( $player_id != 0 || !empty( $username ) ) {
 					if(isset($username) && $player_id == 0)
@@ -237,13 +246,21 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 						$player_id= $username;
 					}
 				
-				$res = $this->get_player_meta($player_id);
+				$res = new wpRPG_Player($player_id);
                 if ( $res ) {
                     global $wp;
+					$this->checkUserMeta($res->ID);
 					$this->get_profile_fields();
-					
-                    $return_template = dirname( __FILE__ ) . '/templates/view_profile.php';
-                    $result = include( $return_template );
+					if(file_exists(get_template_directory() . 'templates/wprpg/view_profile.php')){
+						ob_start();
+						include (get_template_directory() . 'templates/wprpg/view_profile.php');
+						$result = ob_get_clean();
+					}else{
+						ob_start();
+						include (__DIR__ .'/templates/view_profile.php');
+						$result = ob_get_clean();
+					}
+					return $result;
                 } else {
                     $result = '<div id="rpg_area">';
                     $result .= '<h1>User Not Found</h1>';
@@ -279,7 +296,6 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 			$permalink = untrailingslashit(substr(get_permalink($profile), strlen(get_option('home').'/')));
             $newrules                      = array( );
             $newrules[ '('.$permalink.')/(.+)$' ] = 'index.php?pagename=$matches[1]&username=$matches[2]';
-
             return $newrules + $rules;
         }
         
@@ -294,20 +310,11 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 			<script type='text/javascript'>
 				jQuery(document).ready(function($) 
 				{
-					/*$(window).bind('popstate', function() 
-					{
-					  $.ajax({url:location.pathname,success: function(data){
-						//$('html').empty();
-						alert(data);//$('body').html(data);
-					  }});
-					});*/
-					
 					$('a#view-profile').click(function(event) {
 						event.preventDefault();
 						var pageurl = $(this).attr('href');
 						var url = '<?php echo get_bloginfo( 'wpurl' ); ?>';
 						var them = $(this).attr('name');
-						//History.pushState({path:pageurl}, null, url+"/profile/"+them);
 						$.ajax({
 							method: 'post',
 							url: '<?php
@@ -330,7 +337,6 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
         }
         
         function profileCallback( ) {
-			//wp_die($_POST['user']);
             echo $this->getProfile( $_POST[ 'user' ] );
             die( );
         }
@@ -345,8 +351,14 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 			$section = apply_filters( 'profile_section_'.$field, $sections );
 			return $section;
         }
+		
+		function add_plugin( $plugins )
+		{
+			$my_plug = array(
+				'profile'=>array('name'=>'wpRPG_Profiles', 'version'=>'', 'author'=>'Tim Garrity', 'description'=>'Creates a Profile concept')
+			);
+			return array_merge($plugins, $my_plug);
+		}
         
     }
 }
-
-?>

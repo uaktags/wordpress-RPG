@@ -1,4 +1,14 @@
 <?php
+/*
+Plugin Name: WPRPG Hospital (Official Sample)
+Plugin URI: http://wordpress.org/extend/plugins/wprpg/
+Version: 1.0.3
+WPRPG: 1.0.13
+Author: <a href="http://tagsolutions.tk">Tim G.</a>
+Description: Creates a Hospital concept
+Text Domain: wp-rpg
+License: GPL3
+*/
 if ( !class_exists( 'wpRPG_Hospital' ) ) {
     class wpRPG_Hospital extends wpRPG {
         
@@ -27,28 +37,54 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
                  $this,
                 'add_mycrons' 
             ) );
-			add_filter( 'wpRPG_add_admin_tab_header', array(
+			add_filter( 'wpRPG_add_plugins', array(
+					$this, 'add_plugin'
+				)
+			);
+			/*add_filter( 'wpRPG_add_admin_tab_header', array(
                  $this,
                 'addAdminTab_Header' 
-            ) );
+            ) );*/
             add_filter( 'wpRPG_add_admin_tabs', array(
                  $this,
                 'addAdminTab' 
             ) );
-        }
+			add_filter( 'wpRPG_add_pages_settings', array(
+				$this,
+				'add_page_settings'
+			) );
+	    }
         
+		public function add_page_settings( $pages ) {
+			$setting = array(
+				'Hospital'=> array('name'=>'Hospital', 'shortcode'=>'[wprpg_hospital]')
+			);
+			return array_merge( $pages, $setting );
+		}
+		
 		public function register_settings() {
+			if ( !get_option( 'wpRPG_Hospital_Page' ) ) {
+                add_option( 'wpRPG_Hospital_Page', 'Hospital', "", "yes" );
+            }
 			add_option( 'wpRPG_HP_Replenish_Increment', "1", "", "yes");
 			register_setting( 'rpg_settings', 'wpRPG_HP_Replenish_Increment' );
         }
+	
 		
         function showHospital( ) {
             global $wpdb, $current_user;
-            $sql = "SELECT um.*, u.* FROM " . $wpdb->prefix . "rpg_usermeta um JOIN " . $wpdb->base_prefix . "users u WHERE um.pid=u.id AND um.hp<100 AND u.id=" . $current_user->ID;
-            $res = $wpdb->get_results( $sql );
-            if ( $res ) {
-                $return_template = dirname( __FILE__ ) . '/templates/hospital.php';
-                $result = include( $return_template );
+			$res = new wpRPG_Player($current_user->ID);
+			if ( $res ) {
+				$this->checkUserMeta($current_user->ID);
+                if(file_exists(get_template_directory() . 'templates/wprpg/hospital.php')){
+					ob_start();
+					include (get_template_directory() . 'templates/wprpg/hospital.php');
+					$result = ob_get_clean();
+				}else{
+					ob_start();
+					include(__DIR__ .'/templates/hospital.php');
+					$result = ob_get_clean();
+				}
             } else {
                 $result = '<div id="rpg_area">';
                 $result .= '<h1>Hospital</h1>
@@ -68,24 +104,18 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
         
         function includedJS( ) {
             global $wpdb, $current_user;
-            $sql = "SELECT um.*, u.* FROM " . $wpdb->prefix . "rpg_usermeta um JOIN " . $wpdb->base_prefix . "users u WHERE um.pid=u.id AND u.id=". $current_user->ID;
-            $res = $wpdb->get_results( $sql );
+            
+			$res = new wpRPG_Player($current_user->ID);
 ?>
 			<script type='text/javascript'>
 				jQuery(document).ready(function($) {
 					$('button#replenish-hp').click(function(event) {
 						event.preventDefault();
-						var them = '<?php
-            echo $current_user->ID;
-?>';
-						var cost = '<?php
-            echo ( 100 - $res[ 0 ]->hp );
-?>';
+						var them = '<?php echo $current_user->ID; ?>';
+						var cost = '<?php echo ( 100 - $res->hp ); ?>';
 						$.ajax({
 							method: 'post',
-							url: '<?php
-            echo site_url( 'wp-admin/admin-ajax.php' );
-?>',
+							url: '<?php echo site_url( 'wp-admin/admin-ajax.php' ); ?>',
 							data: {
 								'action': 'hospital',
 								'user': them,
@@ -105,21 +135,22 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
         
         function buyHealthCare( $uid, $hp, $cost ) {
             global $wpdb;
-            $sql = "UPDATE " . $wpdb->prefix . "rpg_usermeta SET hp=hp+$hp, gold=gold-$cost WHERE pid=$uid";
-            $wpdb->query( $sql );
+			$player = new wpRPG_Player($uid);
+			$player->update_meta('hp', $player->hp + $hp);
+			$player->update_meta('gold', $player->gold - $cost);
 			$profiles    = new wpRPG_Profiles;
             $profiles->getProfile( $uid );
         }
         
         function hospitalCallback( ) {
             global $wpdb, $current_user;
-            $sql = "SELECT um.*, u.* FROM " . $wpdb->prefix . "rpg_usermeta um JOIN " . $wpdb->base_prefix . "users u WHERE um.pid=u.id AND u.id=" . $current_user->ID;
-            $res = $wpdb->get_results( $sql );
-            if ( $res[ 0 ]->gold >= $_POST[ 'cost' ] ) {
+            $res = new wpRPG_Player($current_user->ID);
+            if ( $res->gold >= $_POST[ 'cost' ] ) {
                 echo "You are now at full health!";
-				$this->buyHealthCare( $res[ 0 ]->ID, 100 - $res[0]->hp, $_POST[ 'cost' ] );
+				$this->buyHealthCare( $res->ID, 100 - $res->hp, $_POST[ 'cost' ] );
                 die( );
             } else {
+				echo "You don't have enough gold!";
                 echo $this->showHospital();
                 die( );
             }
@@ -135,9 +166,9 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
             global $wpdb;
             $wpdb->show_errors();
 			$hpinc = get_option('wpRPG_HP_Replenish_Increment');
-            $sql = "UPDATE " . $wpdb->prefix . "rpg_usermeta SET hp=hp+".$hpinc." WHERE hp<100";
+            $sql = "UPDATE " . $wpdb->prefix . "usermeta SET meta_value=meta_value+".$hpinc." WHERE meta_key='hp' and meta_value<100";
             $wpdb->query( $sql );
-			$sql2 = "UPDATE " . $wpdb->prefix . "rpg_usermeta SET hp=hp-(hp-100) WHERE hp<100";
+			$sql2 = "UPDATE " . $wpdb->prefix . "usermeta SET meta_value=meta_value-(meta_value-100) WHERE meta_key='hp' and meta_value>100";
 			$wpdb->query( $sql2 );
         }
 		
@@ -150,9 +181,17 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
 		function add_mycrons( $crons )
 		{
 			$my_crons = array(
-					 '30min_HPGain'=>array('class'=>'wpRPG_Hospital', 'func'=>'wpRPG_replenish_hp', 'duration'=>1800)
-				);
-				return array_merge( $crons, $my_crons );
+				 '30min_HPGain'=>array('class'=>'wpRPG_Hospital', 'func'=>'wpRPG_replenish_hp', 'duration'=>1800)
+			);
+			return array_merge( $crons, $my_crons );
+		}
+		
+		function add_plugin( $plugins )
+		{
+			$my_plug = array(
+				'hospital'=>array('name'=>'wpRPG_Hospital', 'version'=>'1.0.3', 'author'=>'Tim Garrity', 'description'=>'Creates a Hospital concept')
+			);
+			return array_merge($plugins, $my_plug);
 		}
 		
 		function addAdminTab( $tabs ) {

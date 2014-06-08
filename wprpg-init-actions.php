@@ -1,5 +1,4 @@
 <?php
-
 if ( is_admin() ) {
     add_action( 'admin_menu', array( $rpg, 'wpRPG_settings_page_init' ) );
     add_action( 'admin_init', array( $rpg, 'wpRPG_RegisterSettings' ) );
@@ -11,5 +10,3 @@ if ( !is_admin() ) {
 	add_action( 'init', 'includeJquery');
 	add_action( 'wp_footer', 'includedJS' );
 }
-
-?>
