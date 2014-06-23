@@ -4,13 +4,15 @@ Tags: rpg, wpRPG, Role Playing Game, games, ezRPG
 Donate link: http://tagsolutions.tk/donate/
 Requires at least: 3.6
 Tested up to: 3.8
-Stable tag: 1.0.18
+Stable tag: 1.0.18r1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Modular Role-Playing-Game engine built ontop of WordPress
 
 == Description ==
+## Created a website for the community to post ideas and get support at http://wordpressrpg.com . Also I mirror everything on github at https://github.com/uaktags/wordpress-RPG/ . I find github to be a better solution to post Issues, Forking, etc before making official on the Wordpress SVN server.
+
 ## This plugin is still an on-going development. Issues are sure to arise trying to build an engine that lays foundation for other plugins to build off of. Please use the support forums for help developing.
 
 Inspired by the ezRPG Engine (www.ezrpgproject.net), Wordpress RPG (WP-RPG) looks to add RPG game elements to be built off of Wordpress as it\'s framework.
