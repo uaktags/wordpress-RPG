@@ -43,6 +43,15 @@ class wpRPG_Player
 		return $this->self[$name] = $value;
 	}
 
+	public function __isset( $name = null )
+	{
+		if(array_key_exists($name, $this->self))
+		{
+			return true;
+		}
+		return false;
+	}
+	
 	public function update_meta ($name = null, $value = null )
 	{
 		if ( get_user_meta($this->self['ID'], $name, true) !== FALSE )
