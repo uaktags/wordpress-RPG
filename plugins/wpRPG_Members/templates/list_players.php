@@ -1,5 +1,5 @@
 <?php
-global $wpdb, $current_user;
+global $wpdb;
 $res = get_users();
 $wprpg = new wpRPG;
 ?>
@@ -36,8 +36,17 @@ $wprpg->checkUserMeta($u->ID);
 ?>	
 			<td>
 <?php
-	
-	if( $u->ID != $current_user->ID){
+	if(is_user_logged_in()){
+		$current_user = wp_get_current_user();
+		if( $u->ID != $current_user->ID){
+			$members = new wpRPG_Members;
+			$actions = $members->listPlayers_getLoggedIn_Actions( array('id'=>$u->ID) );
+			foreach($actions as $action=>$html){
+				if($html != $u->ID)
+					echo $html;
+			}
+		}
+	}else{
 		$members = new wpRPG_Members;
 		$actions = $members->listPlayers_getLoggedIn_Actions( array('id'=>$u->ID) );
 		foreach($actions as $action=>$html){
@@ -45,6 +54,7 @@ $wprpg->checkUserMeta($u->ID);
 				echo $html;
 		}
 	}
+	
 ?>
 <?php
 	}

@@ -10,7 +10,6 @@ class wpRPG {
      * @since 1.0.0
      */
     public function __construct() {
-        global $current_user;
         add_action('wp_footer', array(
             $this,
             'wpRPG_check_cron'
@@ -27,15 +26,16 @@ class wpRPG {
      * @since 1.0.0
      */
     public function updateLastActive() {
-        global $current_user;
-        if (!$current_user->ID) {
-            return false;
-        }
-        if ($this->wpRPG_is_playing($current_user->ID)) {
-            $player = new wpRPG_Player($current_user->ID);
-            if ($player->last_active <= (time() - 300))
-                return $player->update_meta('last_active', time());
-        }
+        if(!is_user_logged_in())
+			return false;
+		else{
+			$current_user = wp_get_current_user();
+			if ($this->wpRPG_is_playing($current_user->ID)) {
+				$player = new wpRPG_Player($current_user->ID);
+				if ($player->last_active <= (time() - 300))
+					return $player->update_meta('last_active', time());
+			}
+		}
     }
 
     /**

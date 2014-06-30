@@ -77,65 +77,85 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
 	
 		
         function showHospital( ) {
-            global $wpdb, $current_user;
-			$res = new wpRPG_Player($current_user->ID);
-			if ( $res ) {
-				$this->checkUserMeta($current_user->ID);
-                if(file_exists(get_template_directory() . 'templates/wprpg/hospital.php')){
-					ob_start();
-					include (get_template_directory() . 'templates/wprpg/hospital.php');
-					$result = ob_get_clean();
-				}else{
-					ob_start();
-					include(__DIR__ .'/templates/hospital.php');
-					$result = ob_get_clean();
+            global $wpdb;
+			if(is_user_logged_in()){
+				$current_user = wp_get_current_user();
+				$res = new wpRPG_Player($current_user->ID);
+				if ( $res ) {
+					$this->checkUserMeta($current_user->ID);
+					if(file_exists(get_template_directory() . 'templates/wprpg/hospital.php')){
+						ob_start();
+						include (get_template_directory() . 'templates/wprpg/hospital.php');
+						$result = ob_get_clean();
+					}else{
+						ob_start();
+						include(__DIR__ .'/templates/hospital.php');
+						$result = ob_get_clean();
+					}
+				} else {
+					$result = '<div id="rpg_area">';
+					$result .= '<h1>'.__("Plugin_Title", "wpRPG-Hospital").'</h1>
+	<table width=100% style="text-align:center;"><tr><td><h3>'._e("Already_Healed_MSG", "wpRPG-Hospital").'</h3></td></tr></table>
+										</div>
+										<br/>
+										
+									</div>';
+					$result .= '</div><br/><br/>';
+					if ( get_option ( 'show_wpRPG_Version_footer' ) )	{
+						$result .= '<footer style="display:block;margin: 0 2%;border-top: 1px solid #ddd;padding: 20px 0;font-size: 12px;text-align: center;color: #999;">';
+						$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. $this->plug_version .'</a></footer>';
+					}
 				}
-            } else {
-                $result = '<div id="rpg_area">';
-                $result .= '<h1>'.__("Plugin_Title", "wpRPG-Hospital").'</h1>
+				return $result;
+			}else{
+				$result = '<div id="rpg_area">';
+				$result .= '<h1>'.__("Plugin_Title", "wpRPG-Hospital").'</h1>
 <table width=100% style="text-align:center;"><tr><td><h3>'._e("Already_Healed_MSG", "wpRPG-Hospital").'</h3></td></tr></table>
 									</div>
 									<br/>
 									
 								</div>';
-                $result .= '</div><br/><br/>';
+				$result .= '</div><br/><br/>';
 				if ( get_option ( 'show_wpRPG_Version_footer' ) )	{
 					$result .= '<footer style="display:block;margin: 0 2%;border-top: 1px solid #ddd;padding: 20px 0;font-size: 12px;text-align: center;color: #999;">';
 					$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. $this->plug_version .'</a></footer>';
 				}
-            }
-            return $result;
-        }
+				return $result;
+			}
+		}
         
         function includedJS( ) {
-            global $wpdb, $current_user;
-            if($current_user){
-			$res = new wpRPG_Player($current_user->ID);
-?>
-			<script type='text/javascript'>
-				jQuery(document).ready(function($) {
-					$('button#replenish-hp').click(function(event) {
-						event.preventDefault();
-						var them = '<?php echo $current_user->ID; ?>';
-						var cost = '<?php echo ( 100 - $res->hp ); ?>';
-						$.ajax({
-							method: 'post',
-							url: '<?php echo site_url( 'wp-admin/admin-ajax.php' ); ?>',
-							data: {
-								'action': 'hospital',
-								'user': them,
-								'cost': cost,
-								'ajax': true
-							},
-							success: function(data) {
-								$('#rpg_area').empty();
-								$('#rpg_area').html(data);
-							}
+            global $wpdb;
+			if(is_user_logged_in()){
+				$current_user = wp_get_current_user();
+				if($current_user){
+				$res = new wpRPG_Player($current_user->ID);
+	?>
+				<script type='text/javascript'>
+					jQuery(document).ready(function($) {
+						$('button#replenish-hp').click(function(event) {
+							event.preventDefault();
+							var them = '<?php echo $current_user->ID; ?>';
+							var cost = '<?php echo ( 100 - $res->hp ); ?>';
+							$.ajax({
+								method: 'post',
+								url: '<?php echo site_url( 'wp-admin/admin-ajax.php' ); ?>',
+								data: {
+									'action': 'hospital',
+									'user': them,
+									'cost': cost,
+									'ajax': true
+								},
+								success: function(data) {
+									$('#rpg_area').empty();
+									$('#rpg_area').html(data);
+								}
+							});
 						});
 					});
-				});
-			</script>
-			<?php
+				</script>
+				<?php
+				}
 			}
         }
         
@@ -149,17 +169,20 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
         }
         
         function hospitalCallback( ) {
-            global $wpdb, $current_user;
-            $res = new wpRPG_Player($current_user->ID);
-            if ( $res->gold >= $_POST[ 'cost' ] ) {
-                _e("Now_Full_Health_MSG", "wpRPG-Hospital");
-				$this->buyHealthCare( $res->ID, 100 - $res->hp, $_POST[ 'cost' ] );
-                die( );
-            } else {
-				_e("Need_More_Gold_MSG", "wpRPG-Hospital");
-                echo $this->showHospital();
-                die( );
-            }
+            global $wpdb;
+			if(is_user_logged_in()){
+				$current_user = wp_get_current_user();
+				$res = new wpRPG_Player($current_user->ID);
+				if ( $res->gold >= $_POST[ 'cost' ] ) {
+					_e("Now_Full_Health_MSG", "wpRPG-Hospital");
+					$this->buyHealthCare( $res->ID, 100 - $res->hp, $_POST[ 'cost' ] );
+					die( );
+				} else {
+					_e("Need_More_Gold_MSG", "wpRPG-Hospital");
+					echo $this->showHospital();
+					die( );
+				}
+			}
         }
 
 		/**
