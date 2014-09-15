@@ -1,0 +1,54 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WPRPG Hospital (Official Sample)\n"
+"POT-Creation-Date: 2014-06-25 20:34-0500\n"
+"PO-Revision-Date: 2014-06-25 20:34-0500\n"
+"Last-Translator: timgarrity89@gmail.com <timgarrity89@gmail.com>\n"
+"Language-Team: timgarrity89@gmail.com <timgarrity89@gmail.com>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.5\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: wpRPG_Hospital-plugin.php:95 wpRPG_Hospital-plugin.php:220
+msgid "Plugin_Title"
+msgstr "Krankenhaus"
+
+#: wpRPG_Hospital-plugin.php:96
+msgid "Already_Healed_MSG"
+msgstr ""
+"Sie sind bereits vollständig geheilt! Kommen Sie zurück, wenn Sie Hilfe "
+"brauchen!"
+
+#: wpRPG_Hospital-plugin.php:155
+msgid "Now_Full_Health_MSG"
+msgstr "Sie sind jetzt geheilt!"
+
+#: wpRPG_Hospital-plugin.php:159
+msgid "Need_More_Gold_MSG"
+msgstr "Sie haben nicht genug Gold!"
+
+#: wpRPG_Hospital-plugin.php:212
+msgid "Plugin_Admin_Tab_Title"
+msgstr "Krankenhaus-Einstellungen!"
+
+#: wpRPG_Hospital-plugin.php:225
+msgid "Setting Name"
+msgstr "Name der Einstellung"
+
+#: wpRPG_Hospital-plugin.php:225
+msgid "Setting"
+msgstr "Esintellung"
+
+# Needs proper translation
+#: wpRPG_Hospital-plugin.php:227
+msgid "HP_Cron_Title"
+msgstr "HP Increment Per Cron"

@@ -18,7 +18,8 @@ if ( !class_exists( 'wpRPG_Members' ) && class_exists( 'wpRPG' ) ) {
 		 */
         function __construct( ) {
             parent::__construct();
-            add_shortcode( 'list_players', array(
+            add_action( 'init', array($this, 'wpRPG_Members_load_language'));
+			add_shortcode( 'list_players', array(
                  $this,
                 'listPlayers' 
             ) );
@@ -31,6 +32,10 @@ if ( !class_exists( 'wpRPG_Members' ) && class_exists( 'wpRPG' ) ) {
             }
         }
         
+		function wpRPG_Members_load_language(){
+			load_plugin_textdomain('wpRPG-Members', false, (basename(dirname(dirname(__DIR__))) == 'wprpg'?'/wprpg/plugins/':'').basename( dirname( __FILE__ ) ) . '/languages' );
+		}
+		
 		/**
 		 * Lists the players and renders the template.
 		 * @returns string HTML outpage

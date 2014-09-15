@@ -14,6 +14,7 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
         
         function __construct( ) {
             parent::__construct();
+			add_action( 'init', array($this, 'wpRPG_Hospital_load_language'));
 			add_action( 'admin_init', array( $this, 'register_settings' ) );
             add_shortcode( 'wprpg_hospital', array(
                  $this,
@@ -41,10 +42,10 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
 					$this, 'add_plugin'
 				)
 			);
-			/*add_filter( 'wpRPG_add_admin_tab_header', array(
+			add_filter( 'wpRPG_add_admin_tab_header', array(
                  $this,
                 'addAdminTab_Header' 
-            ) );*/
+            ) );
             add_filter( 'wpRPG_add_admin_tabs', array(
                  $this,
                 'addAdminTab' 
@@ -53,8 +54,12 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
 				$this,
 				'add_page_settings'
 			) );
-	    }
+		}
         
+		function wpRPG_Hospital_load_language(){
+			load_plugin_textdomain('wpRPG-Hospital', false, (basename(dirname(dirname(__DIR__))) == 'wprpg'?'/wprpg/plugins/':'').basename( dirname( __FILE__ ) ) . '/languages' );
+		}
+		
 		public function add_page_settings( $pages ) {
 			$setting = array(
 				'Hospital'=> array('name'=>'Hospital', 'shortcode'=>'[wprpg_hospital]')
@@ -72,65 +77,86 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
 	
 		
         function showHospital( ) {
-            global $wpdb, $current_user;
-			$res = new wpRPG_Player($current_user->ID);
-			if ( $res ) {
-				$this->checkUserMeta($current_user->ID);
-                if(file_exists(get_template_directory() . 'templates/wprpg/hospital.php')){
-					ob_start();
-					include (get_template_directory() . 'templates/wprpg/hospital.php');
-					$result = ob_get_clean();
-				}else{
-					ob_start();
-					include(__DIR__ .'/templates/hospital.php');
-					$result = ob_get_clean();
+            global $wpdb;
+			if(is_user_logged_in()){
+				$current_user = wp_get_current_user();
+				$res = new wpRPG_Player($current_user->ID);
+				if ( $res ) {
+					$this->checkUserMeta($current_user->ID);
+					if(file_exists(get_template_directory() . 'templates/wprpg/hospital.php')){
+						ob_start();
+						include (get_template_directory() . 'templates/wprpg/hospital.php');
+						$result = ob_get_clean();
+					}else{
+						ob_start();
+						include(__DIR__ .'/templates/hospital.php');
+						$result = ob_get_clean();
+					}
+				} else {
+					$result = '<div id="rpg_area">';
+					$result .= '<h1>'.__("Plugin_Title", "wpRPG-Hospital").'</h1>
+	<table width=100% style="text-align:center;"><tr><td><h3>'._e("Already_Healed_MSG", "wpRPG-Hospital").'</h3></td></tr></table>
+										</div>
+										<br/>
+										
+									</div>';
+					$result .= '</div><br/><br/>';
+					if ( get_option ( 'show_wpRPG_Version_footer' ) )	{
+						$result .= '<footer style="display:block;margin: 0 2%;border-top: 1px solid #ddd;padding: 20px 0;font-size: 12px;text-align: center;color: #999;">';
+						$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. $this->plug_version .'</a></footer>';
+					}
 				}
-            } else {
-                $result = '<div id="rpg_area">';
-                $result .= '<h1>Hospital</h1>
-<table width=100% style="text-align:center;"><tr><td><h3>You\'re Already Fully Healed! Come Back When You Need Help!</h3></td></tr></table>
+				return $result;
+			}else{
+				$result = '<div id="rpg_area">';
+				$result .= '<h1>'.__("Plugin_Title", "wpRPG-Hospital").'</h1>
+<table width=100% style="text-align:center;"><tr><td><h3>'._e("Already_Healed_MSG", "wpRPG-Hospital").'</h3></td></tr></table>
 									</div>
 									<br/>
 									
 								</div>';
-                $result .= '</div><br/><br/>';
+				$result .= '</div><br/><br/>';
 				if ( get_option ( 'show_wpRPG_Version_footer' ) )	{
 					$result .= '<footer style="display:block;margin: 0 2%;border-top: 1px solid #ddd;padding: 20px 0;font-size: 12px;text-align: center;color: #999;">';
 					$result .= 'Powered by <a href="http://tagsolutions.tk/wordpress-rpg/">wpRPG '. $this->plug_version .'</a></footer>';
 				}
-            }
-            return $result;
-        }
+				return $result;
+			}
+		}
         
         function includedJS( ) {
-            global $wpdb, $current_user;
-            
-			$res = new wpRPG_Player($current_user->ID);
-?>
-			<script type='text/javascript'>
-				jQuery(document).ready(function($) {
-					$('button#replenish-hp').click(function(event) {
-						event.preventDefault();
-						var them = '<?php echo $current_user->ID; ?>';
-						var cost = '<?php echo ( 100 - $res->hp ); ?>';
-						$.ajax({
-							method: 'post',
-							url: '<?php echo site_url( 'wp-admin/admin-ajax.php' ); ?>',
-							data: {
-								'action': 'hospital',
-								'user': them,
-								'cost': cost,
-								'ajax': true
-							},
-							success: function(data) {
-								$('#rpg_area').empty();
-								$('#rpg_area').html(data);
-							}
+            global $wpdb;
+			if(is_user_logged_in()){
+				$current_user = wp_get_current_user();
+				if($current_user){
+				$res = new wpRPG_Player($current_user->ID);
+	?>
+				<script type='text/javascript'>
+					jQuery(document).ready(function($) {
+						$('button#replenish-hp').click(function(event) {
+							event.preventDefault();
+							var them = '<?php echo $current_user->ID; ?>';
+							var cost = '<?php echo ( 100 - $res->hp ); ?>';
+							$.ajax({
+								method: 'post',
+								url: '<?php echo site_url( 'wp-admin/admin-ajax.php' ); ?>',
+								data: {
+									'action': 'hospital',
+									'user': them,
+									'cost': cost,
+									'ajax': true
+								},
+								success: function(data) {
+									$('#rpg_area').empty();
+									$('#rpg_area').html(data);
+								}
+							});
 						});
 					});
-				});
-			</script>
-			<?php
+				</script>
+				<?php
+				}
+			}
         }
         
         function buyHealthCare( $uid, $hp, $cost ) {
@@ -143,17 +169,20 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
         }
         
         function hospitalCallback( ) {
-            global $wpdb, $current_user;
-            $res = new wpRPG_Player($current_user->ID);
-            if ( $res->gold >= $_POST[ 'cost' ] ) {
-                echo "You are now at full health!";
-				$this->buyHealthCare( $res->ID, 100 - $res->hp, $_POST[ 'cost' ] );
-                die( );
-            } else {
-				echo "You don't have enough gold!";
-                echo $this->showHospital();
-                die( );
-            }
+            global $wpdb;
+			if(is_user_logged_in()){
+				$current_user = wp_get_current_user();
+				$res = new wpRPG_Player($current_user->ID);
+				if ( $res->gold >= $_POST[ 'cost' ] ) {
+					_e("Now_Full_Health_MSG", "wpRPG-Hospital");
+					$this->buyHealthCare( $res->ID, 100 - $res->hp, $_POST[ 'cost' ] );
+					die( );
+				} else {
+					_e("Need_More_Gold_MSG", "wpRPG-Hospital");
+					echo $this->showHospital();
+					die( );
+				}
+			}
         }
 
 		/**
@@ -203,7 +232,7 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
         
         function addAdminTab_Header( $tabs ) {
             $profile_tabs = array(
-                 'hospital' => 'Hospital Settings' 
+                 'hospital' => __('Plugin_Admin_Tab_Title', 'wpRPG-Hospital') 
             );
             return array_merge( $tabs, $profile_tabs );
         }
@@ -211,14 +240,14 @@ if ( !class_exists( 'wpRPG_Hospital' ) ) {
         function hospitalOptions( $opt = 0 ) {
 			$html = "<tr>";
 			$html .= "<td>";
-			$html .= "<h3>Hospital!</h3>";
+			$html .= "<h3>". __("Plugin_Title", "wpRPG-Hospital"). "</h3>";
 			$html .= "</td>";
 			$html .= "</tr>";
 			$html .= "<tr>";
 			$html .= "<td>";
-			$html .= "<table border=1><tr><th>Setting Name</th><th>Setting</th></tr>";
+			$html .= "<table border=1><tr><th>".__('Setting Name', 'wpRPG')."</th><th>".__('Setting','wpRPG')."</th></tr>";
 			$hpinc = get_option('wpRPG_HP_Replenish_Increment');
-			$html .= "<tr><td>HP Increment Per Cron:</td><td><input type=text value=$hpinc name='wpRPG_HP_Replenish_Increment' id='wpRPG_HP_Replenish_Increment' /></td></tr>";
+			$html .= "<tr><td>".__('HP_Cron_Title', 'wpRPG-Hospital').":</td><td><input type=text value=$hpinc name='wpRPG_HP_Replenish_Increment' id='wpRPG_HP_Replenish_Increment' /></td></tr>";
 			$html .= "</table>";
 			$html .= "</td>";
 			$html .= "</tr>";
