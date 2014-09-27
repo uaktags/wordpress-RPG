@@ -46,6 +46,7 @@ $members     = new wpRPG_Members;
 $hospital    = new wpRPG_Hospital;
 $rpgRegister = new wpRPG_Registration;
 $rpgItems = new wpRPG_Items;
+$rpgShop = new wpRPG_Shop;
 global $wpdb;
 include ( __DIR__.'/wprpg-library.php');
 
