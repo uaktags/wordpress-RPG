@@ -91,7 +91,7 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 			$wpdb->query($sql);
 			$sql = "CREATE TABLE IF NOT EXISTS " . $wpdb->prefix . "rpg_Shop_inventory (
 									id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-									player_id int(11) NOT NULL,
+									shop_id int(11) NOT NULL,
 									item_id int(11) NOT NULL,
 									item_count int(11) NOT NULL,
 									item_cost_bonus int(11) NOT NULL DEFAULT '0',
@@ -233,17 +233,16 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 			if(is_user_logged_in()){
 				if(!isset($atts['storeid']) or !$atts['storeid'])
 					$atts['storeid'] = 0;
-					
-					$shop = new wpRPG_Shoppette($atts['storeid']);
-					if(file_exists(get_template_directory() . 'templates/wprpg/Shop.php')){
-						ob_start();
-						include (get_template_directory() . 'templates/wprpg/Shop.php');
-						$result = ob_get_clean();
-					}else{
-						ob_start();
-						include(__DIR__ .'/templates/Shop.php');
-						$result = ob_get_clean();
-					}
+				$shop = new wpRPG_Shoppette($atts['storeid']);
+				if(file_exists(get_template_directory() . 'templates/wprpg/Shop.php')){
+					ob_start();
+					include (get_template_directory() . 'templates/wprpg/Shop.php');
+					$result = ob_get_clean();
+				}else{
+					ob_start();
+					include(__DIR__ .'/templates/Shop.php');
+					$result = ob_get_clean();
+				}
 				return $result;
 			}else{
 				$result = '<div id="rpg_area">';
