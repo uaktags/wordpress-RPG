@@ -3,7 +3,6 @@
 	<div class="simpleTabsContent" id="bio" style="height:500px;">
 		<div>
 			<?php
-				//var_dump($shop->get_shop_stock(1));
 				$shopID = $shop->id;
 				?>
 				<div name="player_heading">

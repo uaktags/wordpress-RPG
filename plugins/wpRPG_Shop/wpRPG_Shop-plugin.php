@@ -36,10 +36,6 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
                     'includedJS' 
                 ) );
             }
-			add_filter( 'wpRPG_add_crons', array(
-                 $this,
-                'add_mycrons' 
-            ) );
 			add_filter( 'wpRPG_add_plugins', array(
 					$this, 'add_plugin'
 				)
@@ -298,63 +294,7 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 				}
 			}
         }
-        
-        function buyHealthCare( $uid, $hp, $cost ) {
-            global $wpdb;
-			$player = new wpRPG_Player($uid);
-			$player->update_meta('hp', $player->hp + $hp);
-			$player->update_meta('gold', $player->gold - $cost);
-			$profiles    = new wpRPG_Profiles;
-            $profiles->getProfile( $uid );
-        }
-        
-        function ShopCallback( ) {
-            global $wpdb;
-			if(is_user_logged_in()){
-				$current_user = wp_get_current_user();
-				$res = new wpRPG_Player($current_user->ID);
-				if ( $res->gold >= $_POST[ 'cost' ] ) {
-					_e("Now_Full_Health_MSG", "wpRPG-Shop");
-					$this->buyHealthCare( $res->ID, 100 - $res->hp, $_POST[ 'cost' ] );
-					die( );
-				} else {
-					_e("Need_More_Gold_MSG", "wpRPG-Shop");
-					echo $this->showShop();
-					die( );
-				}
-			}
-        }
-
-		/**
-		 * Replenish player's HP by x points
-		 * @since 1.0.2
-		 * @version 1.0.6
-		 * @changelog added variable increment
-		 */
-        public function wpRPG_replenish_hp( ) {
-            global $wpdb;
-            $wpdb->show_errors();
-			$hpinc = get_option('wpRPG_HP_Replenish_Increment');
-            $sql = "UPDATE " . $wpdb->prefix . "usermeta SET meta_value=meta_value+".$hpinc." WHERE meta_key='hp' and meta_value<100";
-            $wpdb->query( $sql );
-			$sql2 = "UPDATE " . $wpdb->prefix . "usermeta SET meta_value=meta_value-(meta_value-100) WHERE meta_key='hp' and meta_value>100";
-			$wpdb->query( $sql2 );
-        }
-		
-		/**
-		 * Adds Cron to wpRPG cron
-		 * @param array | $crons contains wpRPG::crons
-		 * @returns array | Merge of new cron with old crons
-		 * @since 1.0.3
-		 */
-		function add_mycrons( $crons )
-		{
-			$my_crons = array(
-				 '30min_HPGain'=>array('class'=>'wpRPG_Shop', 'func'=>'wpRPG_replenish_hp', 'duration'=>1800)
-			);
-			return array_merge( $crons, $my_crons );
-		}
-		
+				
 		function add_plugin( $plugins )
 		{
 			$my_plug = array(
@@ -366,7 +306,7 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 		function addAdminTab( $tabs ) {
             $tab_page = array(
                  'Shop' => $this->ShopOptions( 1 ),
-				 'Bonuses' => $this->ShopItemsOptions(1)
+				 'StoreItems' => $this->ShopItemsOptions(1)
             );
             return array_merge( $tabs, $tab_page );
         }
@@ -421,26 +361,23 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 			global $wpdb;
 			$html = "<tr>";
 			$html .= "<td>";
-			$html .= "<h3>". __("Plugin_Title", "wpRPG-Shop-Bonuses"). "</h3>";
+			$html .= "<h3>". __("Shop Inventory", "wpRPG-Shop-Bonuses"). "</h3>";
 			$html .= "</td>";
 			$html .= "</tr>";
 			$html .= "<tr>";
 			$html .= "<td>";
-			$html .= "<table border=1 id='responds'><thead><tr><th>Action</th><th>Value</th><th>Increase/Decrease</th><th>Actions</th></tr></thead>
+			$html .= "<table border=1 id='responds'><thead><tr><th>Item</th><th>Price Bonus</th><th>Increase/Decrease</th><th>Qty</th><th>Actions</th></tr></thead>
 				<tbody>";
 				$html .= "<div class='content_wrapper'>";
-						if(isset($_GET['itemid']) && is_numeric($_GET['itemid']) && $_GET['tab']=='Bonuses'){
-						$Result = "SELECT * FROM " . $wpdb->prefix . "rpg_Shop_action_values as ItemValues WHERE itemvalues.item_id=". $_GET['itemid'];
-						//get all records from add_delete_record table
+						if(isset($_GET['storeid']) && is_numeric($_GET['storeid']) && $_GET['tab']=='StoreItems'){
+						$Result = "SELECT * FROM " . $wpdb->prefix . "rpg_shop_inventory as Inventory INNER JOIN ".$wpdb->prefix."rpg_items as Items ON Items.id=Inventory.item_id WHERE Inventory.shop_id=". $_GET['storeid'];
 						foreach ($wpdb->get_results($Result, ARRAY_A) as $row)
 						{
-							$bonusTxt = '';
-							$sql = "SELECT * FROM ".$wpdb->prefix."rpg_player_metas WHERE id=".$row['action_id'];
-							foreach($wpdb->get_results($sql, ARRAY_A) as $res)
-								$bonusTxt = $res['name'];
-							$html .= '<tr id="item_'.$row["id"].'"><td>'.ucfirst($bonusTxt).'</td>';
-							$html .= '<td>'.$row["value"].'</td>';
-							$html .= '<td>'.ucfirst(($row["increase"]?'Increase':'Decrease')).'</td>';
+							
+							$html .= '<tr id="item_'.$row["id"].'"><td>'.ucfirst($row['name']).'</td>';
+							$html .= '<td>'.$row["item_cost_bonus"].'</td>';
+							$html .= '<td>'.ucfirst(($row["item_cost_increase"]?'Increase':'Decrease')).'</td>';
+							$html .= '<td>0</td>';
 							$html .= '<td><div class="del_wrapper"><a href="#" class="del_button" id="del-'.$row["id"].'">';
 							$path = plugins_url('images/icon_delete.gif', __FILE__);
 							$html .= '<img src="'.$path .'" border="0" />';
@@ -450,14 +387,14 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 									<tfoot>
 										<tr>
 											<td><select name='bonus_txt' id='bonus_txt'>";
-											$sql = "SELECT * FROM " . $wpdb->prefix . "rpg_player_metas";
-											foreach($wpdb->get_results($sql, ARRAY_A) as $meta)
+											$sql = "SELECT * FROM " . $wpdb->prefix . "rpg_items";
+											foreach($wpdb->get_results($sql, ARRAY_A) as $item)
 											{
-												$html .= "<option value='". $meta["id"]."'>".ucfirst($meta["name"])."</option>";
+												$html .= "<option value='". $item["id"]."'>".ucfirst($item["name"])."</option>";
 											}
 											$html.="</select></td>
 											<td>
-												<input type='text' name='value_txt' id='value_txt' />
+												<input type='text' name='value_txt' id='value_txt' value='0' />
 											</td>
 											<td>
 												<select name='increase_txt' id='increase_txt'>
@@ -466,9 +403,12 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 												</select>
 											</td>
 											<td>
-												<input type=hidden id='wprpg_item_id' name='wprpg_item_id' value=".$_GET['itemid']." />
+												<input type='text' id='item_qty' name='item_qty' value='0' />
+											</td>
+											<td>
+												<input type=hidden id='wprpg_item_id' name='wprpg_item_id' value=".$_GET['storeid']." />
 												<input type=hidden id='wprpg_item_bonus' name='wprpg_item_bonus' value=1 />
-												<button id='BonusSubmit'>Add Bonus</button>
+												<button id='BonusSubmit'>Add Item to Inventory</button>
 											</td>
 										</tr>
 									</tfoot>
@@ -483,129 +423,5 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
                 return $html;
 		}
     }
-	global $wpdb;
-	if(isset($_POST["min_txt"]) && is_numeric($_POST["min_txt"]) && isset($_POST["wprpg_Shop"]))
-	{
-		//sanitize post value, PHP filter FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH
-		$titleToSave = filter_var($_POST["title_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$minToSave = filter_var($_POST["min_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$priceToSave = filter_var($_POST["price_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$catIDToSave = filter_var($_POST["cat_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		//wp_die($contentToSave);
-		$wpdb->show_errors();
-		// Insert sanitize string in record
-		if($wpdb->insert($wpdb->prefix . 'rpg_Shop', array('levelreq'=>$minToSave, 'cat_id'=>$catIDToSave, 'name'=>$titleToSave, 'price'=>$priceToSave), array('%d', '%s', '%d')))
-		{
-			//Record is successfully inserted, respond to ajax request
-			$my_id = $wpdb->insert_id; //Get ID of last inserted record from MySQL
-			echo '<tr id="item_'.$my_id.'"><td>'.$titleToSave.'</td>';
-			echo '<td>'.$catIDToSave.'</td><td>'.$minToSave.'</td>';
-			echo '<td>'.$priceToSave.'</td>';
-			echo '<td><div class="del_wrapper"><a href="#" class="del_button" id="del-'.$my_id.'">';
-			$path = plugins_url('images/icon_del.gif', __FILE__);
-			echo '<img src="'.$path .'" border="0" />';
-			echo '</a><a href="admin.php?page=wpRPG_menu&tab=Bonuses&itemid='. $my_id .'">Bonuses</a></div></td></tr>';   
-			$_POST = array();
-		}else{
-			//output error
-			header('HTTP/1.1 500 Looks like mysql error, could not insert record!');
-			exit();
-		}    
-	} //Item Category AJAX Check
-	elseif(isset($_POST["title_txt"]) && isset($_POST["wprpg_item_cats"]))
-	{
-		//sanitize post value, PHP filter FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH
-		$titleToSave = filter_var($_POST["title_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$descriptionToSave = filter_var($_POST["description_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$equipableToSave = filter_var($_POST["equipable_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		//wp_die($contentToSave);
-		$wpdb->show_errors();
-		// Insert sanitize string in record
-		if($wpdb->insert($wpdb->prefix . 'rpg_Shop_cats', array('name'=>$titleToSave,'description'=>$descriptionToSave,'equipable'=>$equipableToSave), array('%s','%s','%s')))
-		{
-			//Record is successfully inserted, respond to ajax request
-			$my_id = $wpdb->insert_id; //Get ID of last inserted record from MySQL
-			echo '<tr id="item_'.$my_id.'"><td>'.$titleToSave.'</td>';
-			echo '<td>'.$descriptionToSave.'</td>';
-			echo '<td>'.$equipableToSave.'</td>';
-			echo '<td><div class="del_wrapper"><a href="#" class="del_button" id="del-'.$my_id.'">';
-			$path = plugins_url('images/icon_del.gif', __FILE__);
-			echo '<img src="'.$path .'" border="0" />';
-			echo '</a></div></td></tr>';   
-			$_POST = array();
-		}else{
-			//output error
-			header('HTTP/1.1 500 Looks like mysql error, could not insert record!');
-			exit();
-		}    
-	}//Bonus AJAX Check	
-	elseif(isset($_POST["bonus_txt"]) && isset($_POST["wprpg_item_id"]) && is_numeric($_POST["wprpg_item_id"]) && isset($_POST["wprpg_item_bonus"]))
-	{
-		//sanitize post value, PHP filter FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH
-		$bonusToSave = filter_var($_POST["bonus_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$itemIDToSave = filter_var($_POST["wprpg_item_id"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$valueToSave = filter_var($_POST["value_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$increaseToSave = filter_var($_POST["increase_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		//wp_die($contentToSave);
-		$wpdb->show_errors();
-		// Insert sanitize string in record
-		if($wpdb->insert($wpdb->prefix . 'rpg_Shop_action_values', array('item_id'=>$itemIDToSave, 'action_id'=>$bonusToSave, 'value'=>$valueToSave, 'increase'=>$increaseToSave), array('%d','%d', '%d','%d')))
-		{
-			//Record is successfully inserted, respond to ajax request
-			$my_id = $wpdb->insert_id; //Get ID of last inserted record from MySQL
-			$bonusTxt = '';
-			$sql = "SELECT * FROM ".$wpdb->prefix."rpg_player_metas WHERE id=$bonusToSave";
-			foreach($wpdb->get_results($sql, ARRAY_A) as $res)
-				$bonusTxt = $res['name'];
-			echo '<tr id="item_'.$my_id.'"><td>'.$bonusTxt.'</td>';
-			echo '<td>'.$valueToSave.'</td><td>'.($increaseToSave?'Increase':'Decrease').'</td>';
-			echo '<td><div class="del_wrapper"><a href="#" class="del_button" id="del-'.$my_id.'">';
-			$path = plugins_url('images/icon_del.gif', __FILE__);
-			echo '<img src="'.$path .'" border="0" />';
-			echo '</a></div></td></tr>';   
-			$_POST = array();
-		}else{
-			//output error
-			header('HTTP/1.1 500 Looks like mysql error, could not insert record!');
-			exit();
-		}    
-	}elseif(isset($_POST["recordToDelete"]) && strlen($_POST["recordToDelete"])>0 && is_numeric($_POST["recordToDelete"]))
-	{
-		 $idToDelete = filter_var($_POST["recordToDelete"],FILTER_SANITIZE_NUMBER_INT);
-		 if(isset($_POST['wprpg_Shop'])){
-			if(!$wpdb->query("DELETE FROM ". $wpdb->prefix . "rpg_Shop WHERE id=".$idToDelete))
-			{
-			}
-		}
-	}
-	if(isset($_GET['tab']) && $_GET['tab'] == 'Bonuses')
-	{
-		if(isset($_GET['itemid']) && is_numeric($_GET['itemid']))
-		{
-			$itemID = filter_var($_GET["itemid"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-			$wpdb->show_errors();
-			$itemcount = $wpdb->get_var( "SELECT COUNT(*) FROM " . $wpdb->prefix . "rpg_Shop WHERE id=" . $itemID );
-			if(!$itemcount)
-			{
-				header("Location:admin.php?page=wpRPG_menu&tab=Shop");
-				exit;
-			}
-		}else{
-			header("Location:admin.php?page=wpRPG_menu&tab=Shop");
-			exit;
-		}
-	}
-	if(isset($_GET['wprpg_itemCats'])){
-		$sql = "Select * FROM ". $wpdb->prefix ."rpg_Shop_cats";
-		$opts = 0;
-		foreach($wpdb->get_results($sql, ARRAY_A) as $row=>$val) 
-		{
-			$opts++;
-			echo "<option>".$val['name']."</option>";
-		}
-		if(empty($opts))
-			echo "<option>ERROR: You must create Categories First!</option>";
-		
-	}
-	
+	include_once('/wpRPG_Shop_GetPost_functions.php');	
 }
