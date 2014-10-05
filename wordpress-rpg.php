@@ -2,14 +2,24 @@
 /*
 Plugin Name: WP RPG
 Plugin URI: http://wordpress.org/extend/plugins/wprpg/
-Version: 1.0.19
-Author: <a href="http://tagsolutions.tk">Tim G.</a>
+Version: 1.0.22
+Author: <a href="http://tagsolutions.tk">Tim G.</a> | <a href="http://wordpressrpg.com">wpRPG Official</a> | <a href="http://aioxperts.com">AIOXperts</a>
 Description: RPG Elements added to WP
 Text Domain: wp-rpg
 License: GPL3
 */
-define('WPRPG_VERSION', '1.0.19');
-
+define('WPRPG_VERSION', '1.0.22');
+require_once(__DIR__. '/wprpg-updates.php');
+/*
+// I've added a wpRPG_Version option in 1.0.22 to start tracking Version updates.
+*/
+if(!get_option('wpRPG_Version')){
+	if(wpRPG_transition_db())
+		add_option('wpRPG_Version',WPRPG_VERSION,'','yes');	
+}elseif(get_option('wpRPG_Version')<=WPRPG_VERSION){
+	if(wpRPG_transition_db())
+		update_option('wpRPG_Version', WPRPG_VERSION);
+}
 /*
 	WPRPG Class Loader
 	@since 1.0.8
@@ -28,25 +38,18 @@ function wprpg_plugin_autoload($class_name) {
 	}
 }
 
-if (!get_option('wpRPG_transition_db')){
-	add_option('wpRPG_transition_db', 1, '', 'yes');
-	transition_db();
-	//wp_die('Less than/equal to 1.0.13 and never been transitioned');
-}else{
-	
-}
-
 spl_autoload_register('wprpg_plugin_autoload');
 
 //Main wpRPG plugin
 $rpg         = new wpRPG;
+$wpRPG_Modules = array();
 // "External" Modules as would be found by other developers. Will be removed in later versions
-$profiles    = new wpRPG_Profiles;
-$members     = new wpRPG_Members;
-$hospital    = new wpRPG_Hospital;
-$rpgRegister = new wpRPG_Registration;
-$rpgItems = new wpRPG_Items;
-$rpgShop = new wpRPG_Shop;
+$moduleDIR    = __DIR__ . '/plugins/';
+$files = scandir($moduleDIR);
+foreach($files as $file){
+	if($file != '.' && $file != '..')
+		$wpRPG_Modules[$file] = new $file;
+}
 global $wpdb;
 include ( __DIR__.'/wprpg-library.php');
 
@@ -58,20 +61,4 @@ register_activation_hook( __FILE__, array( $rpg, 'wpRPG_on_activation' ) );
 register_deactivation_hook( __FILE__, array( $rpg, 'wpRPG_on_deactivation' ) );
 
 
-function transition_db(){
-	global $wpdb;
-	$sql = 'select * from '. $wpdb->base_prefix . 'rpg_usermeta';
-	$res = $wpdb->get_results($sql);
-	foreach ( $res as $usermeta )
-	{
-		update_user_meta($usermeta->pid, 'gold', $usermeta->gold);
-		update_user_meta($usermeta->pid, 'xp', $usermeta->xp);
-		update_user_meta($usermeta->pid, 'hp', $usermeta->hp);
-		update_user_meta($usermeta->pid, 'strength', $usermeta->strength);
-		update_user_meta($usermeta->pid, 'defense', $usermeta->defense);
-		update_user_meta($usermeta->pid, 'bank', $usermeta->bank);
-		update_user_meta($usermeta->pid, 'last_active', $usermeta->race);
-		update_user_meta($usermeta->pid, 'race', $usermeta->race);
-	}
-}
 ?>
