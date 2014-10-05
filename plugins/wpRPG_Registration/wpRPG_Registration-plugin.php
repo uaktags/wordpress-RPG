@@ -13,41 +13,16 @@ if ( !class_exists( 'wpRPG_Registration' ) ) {
     class wpRPG_Registration extends wpRPG {
         function __construct( ) {
             parent::__construct();
-			$this->default_usermeta = array(
-				'gold' => 0,
-				'xp' => 0,
-				'hp' => 100,
-				'strength' => 5,
-				'defense' => 10,
-				'last_active' => time(),
-				'bank' => 500
-			);
 			if( is_admin() ){
-				add_action( 'admin_init', array( $this, 'register_settings' ) );
+				//add_action( 'admin_init', array( $this, 'register_settings' ) );
 				add_action( 'admin_init', array( $this, 'register_hooks' ) );
 			}
 			add_action( 'user_register', array($this, 'save_registration'), 10, 1 );
-
 		}
         
 		public function save_registration( $uid )
 		{
 			return $this->checkUserMeta($uid);
-		}
-		
-		public function register_settings() {
-			add_option( 'wpRPG_default_gold' , '0', '', 'yes' );
-			add_option( 'wpRPG_default_xp' , '0', '', 'yes' );
-			add_option( 'wpRPG_default_strength' , '5', '', 'yes' );
-			add_option( 'wpRPG_default_defense' , '10', '', 'yes' );
-			add_option( 'wpRPG_default_bank' , '500', '', 'yes' );
-			add_option( 'wpRPG_default_hp' , '100', '', 'yes' );
-			register_setting( 'rpg_settings', 'wpRPG_default_hp');
-			register_setting( 'rpg_settings', 'wpRPG_default_bank');
-			register_setting( 'rpg_settings', 'wpRPG_default_defense');
-			register_setting( 'rpg_settings', 'wpRPG_default_strength');
-			register_setting( 'rpg_settings', 'wpRPG_default_xp');
-			register_setting( 'rpg_settings', 'wpRPG_default_gold');
 		}
 		
 		public function register_hooks() {

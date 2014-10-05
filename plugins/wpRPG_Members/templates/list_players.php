@@ -1,17 +1,17 @@
 <?php
-global $wpdb, $current_user;
+global $wpdb;
 $res = get_users();
 $wprpg = new wpRPG;
 ?>
 <div id="rpg_area">
 	<table id="members" border=1>
 		<tr>
-			<th>MemberName</th>
-			<th>XP</th>
-			<th>HP</th>
-			<th>Level</th>
-			<th>Gold</th>
-			<?php echo ( is_user_logged_in() ? '<th>Actions</th>' : '' );?> 
+			<th><?php _e('MemberName', 'wpRPG-Members') ?></th>
+			<th><?php _e('XP', 'wpRPG-Members') ?></th>
+			<th><?php _e('HP', 'wpRPG-Members') ?></th>
+			<th><?php _e('Level', 'wpRPG-Members') ?></th>
+			<th><?php _e('Gold', 'wpRPG-Members') ?></th>
+			<?php echo ( is_user_logged_in() ? '<th>'.__('Actions', 'wpRPG-Members').'</th>' : '' );?> 
 		</tr>
 <?php
 foreach ( $res as $u ) 
@@ -36,8 +36,17 @@ $wprpg->checkUserMeta($u->ID);
 ?>	
 			<td>
 <?php
-	
-	if( $u->ID != $current_user->ID){
+	if(is_user_logged_in()){
+		$current_user = wp_get_current_user();
+		if( $u->ID != $current_user->ID){
+			$members = new wpRPG_Members;
+			$actions = $members->listPlayers_getLoggedIn_Actions( array('id'=>$u->ID) );
+			foreach($actions as $action=>$html){
+				if($html != $u->ID)
+					echo $html;
+			}
+		}
+	}else{
 		$members = new wpRPG_Members;
 		$actions = $members->listPlayers_getLoggedIn_Actions( array('id'=>$u->ID) );
 		foreach($actions as $action=>$html){
@@ -45,6 +54,7 @@ $wprpg->checkUserMeta($u->ID);
 				echo $html;
 		}
 	}
+	
 ?>
 <?php
 	}

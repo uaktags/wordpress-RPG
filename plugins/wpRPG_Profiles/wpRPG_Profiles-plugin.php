@@ -98,16 +98,21 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 		 * @since 1.0.4
 		 */
 		function get_viewed_player() {
-			global $current_user;
 			$viewed = get_user_by('login',get_query_var( 'username' ));
 			if(!$viewed)
 			{
-				$player = new wpRPG_Player($current_user->ID);
+				if(is_user_logged_in()){
+					$current_user = wp_get_current_user();
+					$player = new wpRPG_Player($current_user->ID);
+				}
 			}else{
 				$viewed = $viewed->ID;
 				$player = $this->get_meta($viewed);
 			}
-			return $player;
+			if($player !== false)
+				return $player;
+			else
+				return false;
 		}
 		
 		/**
@@ -129,11 +134,13 @@ if ( !class_exists( 'wpRPG_Profiles' ) ) {
 		function add_profile_section_mid_right($actions)
 		{
 			$player = $this->get_viewed_player();
+			if($player !== false){
 			$profile_tabs = array(
 				 'gold' =>  'Gold: '.$player->gold,
 				 'hp' => 'HP: '.$player->hp
             );
             return array_merge( $actions, $profile_tabs );
+			}
         }
 		
 		/**

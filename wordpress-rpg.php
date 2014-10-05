@@ -2,13 +2,13 @@
 /*
 Plugin Name: WP RPG
 Plugin URI: http://wordpress.org/extend/plugins/wprpg/
-Version: 1.0.18
+Version: 1.0.19
 Author: <a href="http://tagsolutions.tk">Tim G.</a>
 Description: RPG Elements added to WP
 Text Domain: wp-rpg
 License: GPL3
 */
-define('WPRPG_VERSION', '1.0.18');
+define('WPRPG_VERSION', '1.0.19');
 
 /*
 	WPRPG Class Loader
@@ -42,7 +42,8 @@ $profiles    = new wpRPG_Profiles;
 $members     = new wpRPG_Members;
 $hospital    = new wpRPG_Hospital;
 $rpgRegister = new wpRPG_Registration;
-
+$rpgItems = new wpRPG_Items;
+$rpgShop = new wpRPG_Shop;
 global $wpdb;
 include ( __DIR__.'/wprpg-library.php');
 
