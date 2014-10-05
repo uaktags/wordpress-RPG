@@ -63,7 +63,7 @@ function wpRPG_transition_db() {
 	// The meta was stored in a special table before 1.0.13.
 	$table_name = $wpdb->base_prefix . 'rpg_usermeta';
 
-	if ( $table_name === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) {
+	if ( $table_name === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) ) {
 		$sql = 'select * from ' . $table_name;
 		$res = $wpdb->get_results($sql);
 		foreach ( $res as $usermeta )
