@@ -272,7 +272,13 @@ class wpRPG {
 																  value varchar(50) NOT NULL DEFAULT '0',
 																  UNIQUE KEY name (name))";
 		$wpdb->query($sql);														  
-  
+		$sql = "CREATE TABLE IF NOT EXISTS `wprpg_rpg_races_bonuses` (
+																  id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+																  race_id int(11) NOT NULL DEFAULT '0',
+																  meta_id int(11) NOT NULL DEFAULT '0',
+																  value int(11) NOT NULL DEFAULT '0',
+																  increase tinyint(1) DEFAULT '1')";
+		$wpdb->query($sql);
         $this->wpRPG_default_levels();
         return true;
     }
@@ -374,7 +380,7 @@ class wpRPG {
 		foreach ($wpdb->get_results($sql, ARRAY_A) as $row)
 		{
 			if(is_admin()){
-			add_option( 'wpRPG_default_'.$row['name'] , $row['value'], '', 'yes' );
+			add_option( 'wpRPG_default_'.$row['name'] , ($row['value']=='time'?time():$row['value']), '', 'yes' );
 			register_setting( 'rpg_settings', 'wpRPG_default_'.$row['name']);
 			}
 			array_push($default, array($row['name']=>$row['value']));

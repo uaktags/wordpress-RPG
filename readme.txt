@@ -4,7 +4,7 @@ Tags: rpg, wpRPG, Role Playing Game, games, ezRPG
 Donate link: http://tagsolutions.tk/donate/
 Requires at least: 3.6
 Tested up to: 3.8
-Stable tag: 1.0.19
+Stable tag: 1.0.22
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,12 @@ No, this plugin is an \"engine\" or \"framework\" to build your RPG. With the ad
 
 
 == Changelog ==
+= 1.0.22pre1 = 
+- Introducing Shop/Items.
+- Introducing Version control and DB migration.
+- Introducing better loading of bundled modules.
+- Items / Shop must be working before PullRequest to Master. Official version will be 1.0.22 with 2 versions that were internal and not seen by others.
+
 = 1.0.19 =
 - Fixed a Player Class issue with currentUser
 - Started translation support. I'm very new to this concept so bare with me for a while.
