@@ -14,10 +14,17 @@ require_once(__DIR__. '/wprpg-updates.php');
 // I've added a wpRPG_Version option in 1.0.22 to start tracking Version updates.
 */
 if(!get_option('wpRPG_Version')){
+<<<<<<< HEAD
 	if(wpRPG_Upgrade())
 		add_option('wpRPG_Version',WPRPG_VERSION,'','yes');	
 }elseif(version_compare(WPRPG_VERSION, get_option('wpRPG_Version'), '>=')){
 	if(wpRPG_Upgrade())
+=======
+	if(wpRPG_transition_db())
+		add_option('wpRPG_Version',WPRPG_VERSION,'','yes');	
+}elseif(get_option('wpRPG_Version')<=WPRPG_VERSION){
+	if(wpRPG_transition_db())
+>>>>>>> origin/development-2
 		update_option('wpRPG_Version', WPRPG_VERSION);
 }
 /*
