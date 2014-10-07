@@ -528,7 +528,7 @@ if ( !class_exists( 'wpRPG_Items' ) ) {
 						foreach ($wpdb->get_results($Result, ARRAY_A) as $row)
 						{
 							$bonusTxt = '';
-							$sql = "SELECT * FROM ".$wpdb->prefix."rpg_player_metas WHERE id=".$row['action_id'];
+							$sql = "SELECT * FROM ".$wpdb->prefix."rpg_player_metas WHERE id=".$row['action_id']." AND type!='time'";
 							foreach($wpdb->get_results($sql, ARRAY_A) as $res)
 								$bonusTxt = $res['name'];
 							$html .= '<tr id="item_'.$row["id"].'"><td>'.ucfirst($bonusTxt).'</td>';

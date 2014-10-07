@@ -14,7 +14,7 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
         
         function __construct( ) {
             parent::__construct();
-			require_once("Shop_class.php");
+			require_once(__DIR__ . "/Shop_class.php");
 			add_action( 'init', array($this, 'wpRPG_Shop_load_language'));
 			add_action( 'admin_init', array( $this, 'register_settings' ) );
 
@@ -104,9 +104,7 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 				"$('#FormSubmit').click(function (e) {
 					e.preventDefault();
 					if($('#wprpg_Shop').length != 0){
-						
-						
-						var myData = 'title_txt='+ $('#itemTitle_txt').val() +'&cat_txt='+$('#itemCats').val()+'&min_txt='+ $('#itemMin_txt').val()+'&price_txt='+ $('#itemPrice_txt').val()+'&wprpg_Shop='+ $('#wprpg_Shop').val(); //post variables
+						var myData = 'title_txt='+ $('#shopTitle_txt').val() +'&description_txt='+ $('#shopDescription_txt').val()+'&wprpg_Shop='+ $('#wprpg_Shop').val(); //post variables
 						
 						jQuery.ajax({
 							type: 'POST', // HTTP method POST or GET
@@ -115,87 +113,16 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 							data:myData, //post variables
 							success:function(response){
 							$('#responds').append(response);
-							$('#itemTitle_txt').val('');
-							$('#itemMin_txt').val('');
-							$('#itemPrice_txt').val('');//empty text field after successful submission
+							$('#shopTitle_txt').val('');
+							$('#shopDescription_txt').val('');//empty text field after successful submission
 							
 							},
 							error:function (xhr, ajaxOptions, thrownError){
 								alert(thrownError); //throw any errors
 							}
 						});
-					}});
+				}});
 			
-			$('#BonusSubmit').click(function (e) {
-				e.preventDefault();
-				console.log('clicked on Add New Bonus');
-				if($('#wprpg_item_bonus').length != 0){
-					console.log('everythings set lets proceed')
-					if($('#bonus_txt').val()==='') //simple validation
-					{
-						alert('Please enter some text!');
-						return false;
-					}
-					
-					var myData = 'bonus_txt='+ $('#bonus_txt').val() +'&value_txt='+ $('#value_txt').val()+ '&wprpg_item_id='+ $('#wprpg_item_id').val()+ '&increase_txt='+ $('#increase_txt').val() +'&wprpg_item_bonus='+ $('#wprpg_item_bonus').val(); //post variables
-					console.log('submitting ' + myData );
-					jQuery.ajax({
-						type: 'POST', // HTTP method POST or GET
-						url: '". site_url( 'wp-admin/admin-ajax.php' )."', //Where to make Ajax calls
-						dataType:'text', // Data type, HTML, json etc.
-						data:myData, //post variables
-						success:function(response){
-						$('#responds').append(response);
-						$('#bonus_txt').val('');
-						$('#value_txt').val('');
-						$('#increase_txt').val('');//empty text field after successful submission
-						},
-						error:function (xhr, ajaxOptions, thrownError){
-							alert(thrownError); //throw any errors
-						}
-					});
-				}
-			});
-			$('#CatSubmit').click(function (e) {
-			e.preventDefault();
-			console.log('clicked on Add New Category');
-			if($('#wprpg_item_cats').length != 0){
-				console.log('cats doesnt = 0')
-				if($('#title_txt').val()==='') //simple validation
-				{
-					alert('Please enter some text!');
-					return false;
-				}
-				if($('#equipable_txt').val()==='')
-				{
-					alert('Please enter some text!');
-					return false;
-				}
-				if($('#description_txt').val()==='')
-				{
-					alert('Please enter some text!');
-					return false;
-				}
-				
-				var myData = 'title_txt='+ $('#title_txt').val() +'&description_txt='+$('#description_txt').val()+'&equipable_txt='+$('#equipable_txt').val()+'&wprpg_item_cats='+ $('#wprpg_item_cats').val(); //post variables
-				
-				jQuery.ajax({
-					type: 'POST', // HTTP method POST or GET
-					url: '". site_url( 'wp-admin/admin-ajax.php' )."', //Where to make Ajax calls
-					dataType:'text', // Data type, HTML, json etc.
-					data:myData, //post variables
-					success:function(response){
-					$('#respondsCats').append(response);
-					$('#title_txt').val('');
-					$('#description_txt').val('');
-					$('#equipable_txt').val('');//empty text field after successful submission
-					
-					},
-					error:function (xhr, ajaxOptions, thrownError){
-						alert(thrownError); //throw any errors
-					}
-				});
-			}});
 			$('#responds').on('click', 'a.del_button',(function(e) {
 			e.preventDefault();
 			var clickedID = this.id.split('-'); //Split string (Split works as PHP explode)
@@ -334,7 +261,7 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 						//get all records from add_delete_record table
 						foreach ($wpdb->get_results($Result, ARRAY_A) as $row)
 						{
-							$html .= '<tr id="s_'.$row["id"].'"><td>'.$row["name"].'</td>';
+							$html .= '<tr id="shop_'.$row["id"].'"><td>'.$row["name"].'</td>';
 							$html .= '<td>[wpRPG_Shop storeid="'.$row["id"].'"]</td>';
 							$html .= '<td>'.$row["description"].'</td>';
 							$html .= '<td><div class="del_wrapper"><a href="#" class="del_button" id="del-'.$row["id"].'">';
@@ -342,8 +269,8 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 							$html .= '<img src="'.$path .'" border="0" />';
 							$html .= '</a><a href="admin.php?page=wpRPG_menu&tab=StoreItems&storeid='. $row["id"] .'">Inventory</a></div></td></tr>';
 						}
-							$html .= "</tbody><tfoot><tr><td><input type='text' name='itemTitle_txt' id='itemTitle_txt' /></td><td>This is automatically made</td><td>
-							<input type='text' name='shopDescription_txt' id='shopDescription_txt' /></td><td><button id='FormSubmit'>Add record</button></td></tr></tfoot></table>
+							$html .= "</tbody><tfoot><tr><td><input type='text' name='shopTitle_txt' id='shopTitle_txt' /></td><td>This is automatically made</td><td>
+							<input type='text' name='shopDescription_txt' id='shopDescription_txt' /></td><td><button id='FormSubmit'>Add Shop</button></td></tr></tfoot></table>
 			
 										
 										</div>
@@ -423,5 +350,5 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
                 return $html;
 		}
     }
-	include_once('/wpRPG_Shop_GetPost_functions.php');	
+	include_once(__DIR__ . '/wpRPG_Shop_GetPost_functions.php');	
 }
