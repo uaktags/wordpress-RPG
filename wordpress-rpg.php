@@ -2,14 +2,31 @@
 /*
 Plugin Name: WP RPG
 Plugin URI: http://wordpress.org/extend/plugins/wprpg/
-Version: 1.0.18
-Author: <a href="http://tagsolutions.tk">Tim G.</a>
+Version: 1.0.22
+Author: <a href="http://tagsolutions.tk">Tim G.</a> | <a href="http://wordpressrpg.com">wpRPG Official</a> | <a href="http://aioxperts.com">AIOXperts</a>
 Description: RPG Elements added to WP
 Text Domain: wp-rpg
 License: GPL3
 */
-define('WPRPG_VERSION', '1.0.18');
-
+define('WPRPG_VERSION', '1.0.22');
+require_once(__DIR__. '/wprpg-updates.php');
+/*
+// I've added a wpRPG_Version option in 1.0.22 to start tracking Version updates.
+*/
+if(!get_option('wpRPG_Version')){
+<<<<<<< HEAD
+	if(wpRPG_Upgrade())
+		add_option('wpRPG_Version',WPRPG_VERSION,'','yes');	
+}elseif(version_compare(WPRPG_VERSION, get_option('wpRPG_Version'), '>=')){
+	if(wpRPG_Upgrade())
+=======
+	if(wpRPG_transition_db())
+		add_option('wpRPG_Version',WPRPG_VERSION,'','yes');	
+}elseif(get_option('wpRPG_Version')<=WPRPG_VERSION){
+	if(wpRPG_transition_db())
+>>>>>>> origin/development-2
+		update_option('wpRPG_Version', WPRPG_VERSION);
+}
 /*
 	WPRPG Class Loader
 	@since 1.0.8
@@ -28,21 +45,26 @@ function wprpg_plugin_autoload($class_name) {
 	}
 }
 
+<<<<<<< HEAD
 if (!get_option('wpRPG_transition_db')){
 	add_option('wpRPG_transition_db', 1, '', 'yes');
 	wpRPG_transition_db();
 }
 
+=======
+>>>>>>> origin/development-2
 spl_autoload_register('wprpg_plugin_autoload');
 
 //Main wpRPG plugin
 $rpg         = new wpRPG;
+$wpRPG_Modules = array();
 // "External" Modules as would be found by other developers. Will be removed in later versions
-$profiles    = new wpRPG_Profiles;
-$members     = new wpRPG_Members;
-$hospital    = new wpRPG_Hospital;
-$rpgRegister = new wpRPG_Registration;
-
+$moduleDIR    = __DIR__ . '/plugins/';
+$files = scandir($moduleDIR);
+foreach($files as $file){
+	if($file != '.' && $file != '..')
+		$wpRPG_Modules[$file] = new $file;
+}
 global $wpdb;
 include ( __DIR__.'/wprpg-library.php');
 
@@ -58,6 +80,7 @@ register_deactivation_hook( __FILE__, array( $rpg, 'wpRPG_on_deactivation' ) );
  */
 function wpRPG_transition_db() {
 
+<<<<<<< HEAD
 	global $wpdb;
 
 	// The meta was stored in a special table before 1.0.13.
@@ -80,3 +103,6 @@ function wpRPG_transition_db() {
 	}
 }
 ?>
+=======
+?>
+>>>>>>> origin/development-2

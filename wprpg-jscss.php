@@ -47,7 +47,7 @@ elseif(isset($_POST["title_txt"]) && strlen($_POST["title_txt"])>0 && isset($_PO
     //wp_die($contentToSave);
 	$wpdb->show_errors();
     // Insert sanitize string in record
-    if($wpdb->insert($wpdb->prefix . 'rpg_races', array('strength'=>$strToSave, 'defense'=>$strToSave, 'gold'=>$goldToSave, 'title'=>$titleToSave), array('%d', '%d', '%d', '%s')))
+    if($wpdb->insert($wpdb->prefix . 'rpg_races', array('strength'=>$strToSave, 'defense'=>$defToSave, 'gold'=>$goldToSave, 'title'=>$titleToSave), array('%d', '%d', '%d', '%s')))
     {
         //Record is successfully inserted, respond to ajax request
         $my_id = $wpdb->insert_id; //Get ID of last inserted record from MySQL
@@ -55,6 +55,38 @@ elseif(isset($_POST["title_txt"]) && strlen($_POST["title_txt"])>0 && isset($_PO
 		echo '<td>'.$strToSave.'</td>';
 		echo '<td>'.$defToSave.'</td>';
 		echo '<td>'.$goldToSave.'</td>';
+		echo '<td><div class="del_wrapper"><a href="#" class="del_button" id="del-'.$my_id.'">';
+		$path = plugins_url('images/icon_del.gif', __FILE__);
+		echo '<img src="'.$path .'" border="0" />';
+		echo '</a></div></td></tr>';   
+		$_POST = array();
+    }else{
+        //output error
+        header('HTTP/1.1 500 Looks like mysql error, could not insert record!');
+        exit();
+    }
+}
+elseif(isset($_POST["title_txt"]) && strlen($_POST["title_txt"])>0 && isset($_POST["wprpg_metas"])){
+	//sanitize post value, PHP filter FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH
+    $titleToSave = filter_var($_POST["title_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
+	if(isset($_POST['type_txt']))
+		$strToSave = filter_var($_POST["type_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
+	else
+		$strToSave = 0;
+	if(isset($_POST['value_txt']))
+		$defToSave = filter_var($_POST["value_txt"],FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
+	else
+		$defToSave = 0;
+    //wp_die($contentToSave);
+	$wpdb->show_errors();
+    // Insert sanitize string in record
+    if($wpdb->insert($wpdb->prefix . 'rpg_player_metas', array('type'=>$strToSave, 'value'=>$defToSave, 'name'=>$titleToSave), array('%s', '%s', '%s')))
+    {
+        //Record is successfully inserted, respond to ajax request
+        $my_id = $wpdb->insert_id; //Get ID of last inserted record from MySQL
+		echo '<tr id="item_'.$my_id.'"><td>'.$titleToSave.'</td>';
+		echo '<td>'.$strToSave.'</td>';
+		echo '<td>'.$defToSave.'</td>';
 		echo '<td><div class="del_wrapper"><a href="#" class="del_button" id="del-'.$my_id.'">';
 		$path = plugins_url('images/icon_del.gif', __FILE__);
 		echo '<img src="'.$path .'" border="0" />';
@@ -153,6 +185,32 @@ function wpRPG_get_plugin_code( ) {
 					$('#strength_txt').val('0');
 					$('#gold_txt').val('0');
 					$('#defense_txt').val('0');//empty text field after successful submission
+					
+					},
+					error:function (xhr, ajaxOptions, thrownError){
+						alert(thrownError); //throw any errors
+					}
+				});
+			}
+			if($('#wprpg_metas').length != 0){
+				if($('#title_txt').val()==='') //simple validation
+				{
+					alert('Please enter some text!');
+					return false;
+				}
+				
+				var myData = 'title_txt='+ $('#title_txt').val() +'&type_txt='+ $('#type_txt').val() +'&value_txt='+ $('#value_txt').val()  + '&wprpg_metas=1'; //post variables
+				
+				jQuery.ajax({
+					type: 'POST', // HTTP method POST or GET
+					url: '". site_url( 'wp-admin/admin-ajax.php' )."', //Where to make Ajax calls
+					dataType:'text', // Data type, HTML, json etc.
+					data:myData, //post variables
+					success:function(response){
+					$('#responds').append(response);
+					$('#title_txt').val('Name');
+					$('#type_txt').val('Integer');
+					$('#value_txt').val('0');//empty text field after successful submission
 					
 					},
 					error:function (xhr, ajaxOptions, thrownError){

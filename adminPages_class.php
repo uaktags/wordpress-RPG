@@ -8,7 +8,8 @@
 					'pages' => 'Pages',
 					'cron' => 'Cron Info',
 					'levels' => 'Level Manager',
-					'plugins' => 'Module Manager'
+					'plugins' => 'Module Manager',
+					'usermeta' => 'UserMeta Manager'
             );
 			if(get_option ( 'wpRPG_admin_enable_debug_funcs' )){
 				$this->default_tabs = array_merge($this->default_tabs, array('debug'=>'Debug Tab'));
@@ -251,7 +252,29 @@
 					}
 					$html .= "</table>";
                     return $html;
-                    break;           
+                    break;
+				case 'usermeta':
+					if ( get_option( 'wpRPG_show_Tab_Title') ) {
+						$html = "<tr>";
+						$html .= "<td>";
+						$html .= "<h3>Pages!</h3>";
+						$html .= "</td>";
+						$html .= "</tr>";
+					}
+                    $html .= "<tr>";
+                    $html .= "<td>";
+                    $html .= "<table border=1 id='responds'><thead><th>UserMeta</th><th>Type</th><th>Value</th><th>Action</th></thead><tbody>";
+					$html .= "<div class='content_wrapper'>";
+					$sql = "SELECT * FROM ".$wpdb->prefix ."rpg_player_metas";
+                    foreach($wpdb->get_results($sql, ARRAY_A) as $meta=>$val){
+						
+						$html .= "<tr><td>".$val['name']."</td><td>".$val['type']."</td><td>".$val['value']. "</td><td></td></tr>";
+                    }
+					$html .= "</tbody><tfoot><tr><td><input type='text' name='title_txt' id='title_txt' value='Name' /></td><td><input type='text' name='type_txt' id='type_txt' value='Integer' /></td><td><input type='text' name='value_txt' id='value_txt' value=0 /></td><td><input type='hidden' id='wprpg_metas' name='wprpg_metas' value=1 /><button id='FormSubmit'>Add Meta</button></td></tr><tfoot></table>";
+                    $html .= "</td>";
+                    $html .= "</tr>";
+                    return $html;
+                    break;
             }
         }
 		

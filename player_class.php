@@ -13,8 +13,12 @@ class wpRPG_Player
 		if(!is_numeric($uid)){
 			$data = get_user_by('login', $uid);
 			$uid = $data->data->ID; //WP_USER object is stupid
+		}elseif($uid == 0)
+		{
+			return 0;
 		}
 		$meta = get_user_meta($uid);
+			
 		foreach ( $meta as $key => $val ){
 			foreach ($val as $valkey => $truval){
 				$this->self[$key] = $truval;
@@ -27,7 +31,11 @@ class wpRPG_Player
 	
 	public function __get( $name = null )
 	{
-		return $this->self[$name];
+		if (array_key_exists($name, $this->self)){ 
+			return $this->self[$name];
+		}else{
+			return false;
+		}
 	}
 	
 	public function __set ( $name = null, $value = null )
@@ -35,6 +43,15 @@ class wpRPG_Player
 		return $this->self[$name] = $value;
 	}
 
+	public function __isset( $name = null )
+	{
+		if(array_key_exists($name, $this->self))
+		{
+			return true;
+		}
+		return false;
+	}
+	
 	public function update_meta ($name = null, $value = null )
 	{
 		if ( get_user_meta($this->self['ID'], $name, true) !== FALSE )
