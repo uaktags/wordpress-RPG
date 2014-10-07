@@ -14,17 +14,11 @@ require_once(__DIR__. '/wprpg-updates.php');
 // I've added a wpRPG_Version option in 1.0.22 to start tracking Version updates.
 */
 if(!get_option('wpRPG_Version')){
-<<<<<<< HEAD
+
 	if(wpRPG_Upgrade())
 		add_option('wpRPG_Version',WPRPG_VERSION,'','yes');	
 }elseif(version_compare(WPRPG_VERSION, get_option('wpRPG_Version'), '>=')){
 	if(wpRPG_Upgrade())
-=======
-	if(wpRPG_transition_db())
-		add_option('wpRPG_Version',WPRPG_VERSION,'','yes');	
-}elseif(get_option('wpRPG_Version')<=WPRPG_VERSION){
-	if(wpRPG_transition_db())
->>>>>>> origin/development-2
 		update_option('wpRPG_Version', WPRPG_VERSION);
 }
 /*
@@ -45,14 +39,6 @@ function wprpg_plugin_autoload($class_name) {
 	}
 }
 
-<<<<<<< HEAD
-if (!get_option('wpRPG_transition_db')){
-	add_option('wpRPG_transition_db', 1, '', 'yes');
-	wpRPG_transition_db();
-}
-
-=======
->>>>>>> origin/development-2
 spl_autoload_register('wprpg_plugin_autoload');
 
 //Main wpRPG plugin
@@ -75,34 +61,4 @@ include ( __DIR__.'/wprpg-library.php');
 register_activation_hook( __FILE__, array( $rpg, 'wpRPG_on_activation' ) );
 register_deactivation_hook( __FILE__, array( $rpg, 'wpRPG_on_deactivation' ) );
 
-/**
- * Updates the database schema if it is an old version.
- */
-function wpRPG_transition_db() {
-
-<<<<<<< HEAD
-	global $wpdb;
-
-	// The meta was stored in a special table before 1.0.13.
-	$table_name = $wpdb->base_prefix . 'rpg_usermeta';
-
-	if ( $table_name === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) ) {
-		$sql = 'select * from ' . $table_name;
-		$res = $wpdb->get_results($sql);
-		foreach ( $res as $usermeta )
-		{
-			update_user_meta($usermeta->pid, 'gold', $usermeta->gold);
-			update_user_meta($usermeta->pid, 'xp', $usermeta->xp);
-			update_user_meta($usermeta->pid, 'hp', $usermeta->hp);
-			update_user_meta($usermeta->pid, 'strength', $usermeta->strength);
-			update_user_meta($usermeta->pid, 'defense', $usermeta->defense);
-			update_user_meta($usermeta->pid, 'bank', $usermeta->bank);
-			update_user_meta($usermeta->pid, 'last_active', $usermeta->race);
-			update_user_meta($usermeta->pid, 'race', $usermeta->race);
-		}
-	}
-}
 ?>
-=======
-?>
->>>>>>> origin/development-2
