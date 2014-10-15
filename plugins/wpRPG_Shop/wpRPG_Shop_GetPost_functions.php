@@ -33,6 +33,7 @@ global $wpdb;
 		 if(isset($_POST['wprpg_Shop'])){
 			if(!$wpdb->query("DELETE FROM ". $wpdb->prefix . "rpg_Shop WHERE id=".$idToDelete))
 			{
+				
 			}
 		}
 	}

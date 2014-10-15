@@ -139,7 +139,7 @@ if ( !class_exists( 'wpRPG_Shop' ) ) {
 				data:myData, //post variables
 				success:function(response){
 				//on success, hide element user wants to delete.
-					$('#item_'+DbNumberID).fadeOut('slow');
+					$('#shop_'+DbNumberID).fadeOut('slow');
 				},
 				error:function (xhr, ajaxOptions, thrownError){
 					//On error, we alert user
